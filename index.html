@@ -2828,26 +2828,12 @@
 
     <script type="text/babel">
       const { useState, useEffect } = React;
-      // Adresse réseau du PC (Wi-Fi).
-      // IMPORTANT : le téléphone ne peut PAS utiliser 127.0.0.1 pour joindre le PC.
-      // Le PC et le téléphone doivent être sur le même Wi-Fi.
-      const PC_WIFI_IP = "192.168.1.248";
-      const BACKEND_PORT = "8000";
-
-      // Si le site est ouvert avec localhost/127.0.0.1 sur le PC,
-      // on utilise quand même l'adresse Wi-Fi pour que les requêtes API
-      // soient également accessibles depuis le téléphone.
-      const currentHost = window.location.hostname;
-      const SERVER_HOST =
-        !currentHost ||
-        currentHost === "localhost" ||
-        currentHost === "127.0.0.1" ||
-        currentHost === "0.0.0.0"
-          ? PC_WIFI_IP
-          : currentHost;
-
-      const API_URL = `http://${SERVER_HOST}:${BACKEND_PORT}/api`;
-      const ASSETS_URL = `http://${SERVER_HOST}:${BACKEND_PORT}`;
+      // URLs de production — backend Symfony déployé sur Railway.
+      // Plus besoin de l'IP locale du PC ni du port 8000.
+      const API_URL =
+        "https://restaurantvoilier-production.up.railway.app/api";
+      const ASSETS_URL =
+        "https://restaurantvoilier-production.up.railway.app";
 
       /*
        * IMPORTANT — sécurité backend à faire côté serveur :
@@ -8461,13 +8447,11 @@
 
           qrRef.current.innerHTML = "";
 
-          // Le QR doit contenir l'adresse réseau du PC, jamais 127.0.0.1.
-          // Le port du frontend est récupéré automatiquement (ex. 5500).
-          const frontendPort = window.location.port || "5500";
-          const frontendPath = window.location.pathname || "/index.html";
+          // Le QR pointe vers le frontend public déployé.
+          // window.location.origin récupère automatiquement le domaine
+          // réel du site (ex. https://levoilier.netlify.app).
           const loginUrl =
-            `http://${PC_WIFI_IP}:${frontendPort}` +
-            `${frontendPath}?page=login`;
+            `${window.location.origin}${window.location.pathname}?page=login`;
 
           new QRCode(qrRef.current, {
             text: loginUrl,
