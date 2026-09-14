@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./style.css";
 import AdminPage from "./AdminPage";
+import { QRCodeSVG } from "qrcode.react";
 
 // URLs de production — backend Symfony déployé sur Railway.
 // Plus besoin de l'IP locale du PC ni du port 8000.
@@ -2032,29 +2033,15 @@ export function categorieVoilier(categorie) {
     return "BOISSONS ÉNERGÉTIQUES";
   return categorie || "LES PLATS";
 }
-
 function QRCodeClient() {
-  const qrRef = React.useRef(null);
-
-  useEffect(() => {
-    if (!qrRef.current) return;
-    qrRef.current.innerHTML = "";
-    const loginUrl = `${window.location.origin}${window.location.pathname}?page=login`;
-    if (window.QRCode) {
-      new window.QRCode(qrRef.current, {
-        text: loginUrl,
-        width: 200,
-        height: 200,
-        correctLevel: window.QRCode.CorrectLevel.H,
-      });
-    }
-  }, []);
+  const loginUrl = `${window.location.origin}${window.location.pathname}?page=login`;
 
   return (
     <div className="qr-client-content">
       <div className="qr-image-box">
-        <div ref={qrRef} />
+        <QRCodeSVG value={loginUrl} size={200} level="H" includeMargin={true} />
       </div>
+
       <small>Scannez avec votre téléphone</small>
     </div>
   );
