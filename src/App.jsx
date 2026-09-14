@@ -2034,7 +2034,8 @@ export function categorieVoilier(categorie) {
   return categorie || "LES PLATS";
 }
 function QRCodeClient() {
-  const loginUrl = "https://musical-kangaroo-644406.netlify.app/?page=login";
+  const loginUrl =
+    "https://restaurantvoilier-frontend.frajaya629.workers.dev/?page=login";
 
   return (
     <div className="qr-client-content">
