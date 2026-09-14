@@ -2034,7 +2034,7 @@ export function categorieVoilier(categorie) {
   return categorie || "LES PLATS";
 }
 function QRCodeClient() {
-  const loginUrl = `${window.location.origin}${window.location.pathname}?page=login`;
+  const loginUrl = "https://musical-kangaroo-644406.netlify.app/?page=login";
 
   return (
     <div className="qr-client-content">
