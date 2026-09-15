@@ -3,17 +3,20 @@ import "./style.css";
 import AdminPage from "./AdminPage";
 import { QRCodeSVG } from "qrcode.react";
 
-// URLs de production — backend Symfony déployé sur Railway.
-// Plus besoin de l'IP locale du PC ni du port 8000.
+/* ============================================================
+ * 1) CONFIGURATION — URLs de production (backend Symfony / Railway)
+ * ============================================================ */
 export const API_URL =
   "https://restaurantvoilier-production-3c05.up.railway.app/api";
-export const ASSETS_URL = "https://restaurantvoilier-production-3c05.up.railway.app";
+export const ASSETS_URL =
+  "https://restaurantvoilier-production-3c05.up.railway.app";
+
 /*
  * IMPORTANT — sécurité backend à faire côté serveur :
  * 1. motDePasse => bcrypt/Argon2id, jamais en clair.
  * 2. POST /refresh doit valider un refresh token rotatif et révoquer l'ancien.
  * 3. /login et /register doivent avoir un rate-limit serveur (ex. 5 essais/minute/IP
- *    + limitation par compte), car le blocage JS ci-dessus n'est PAS une sécurité suffisante.
+ *    + limitation par compte), car le blocage JS ci-dessous n'est PAS une sécurité suffisante.
  * 4. Valider et normaliser les données côté serveur (email, password, dates, capacités,
  *    droits admin) même si le client les valide déjà.
  * 5. Pour une vraie disponibilité horaire, POST /reservations doit refuser côté serveur
@@ -24,11 +27,23 @@ const ACCESS_TOKEN_KEY = "token";
 const REFRESH_TOKEN_KEY = "refreshToken";
 const TOKEN_REFRESH_SKEW_SECONDS = 45;
 
+/* ============================================================
+ * 2) UTILITAIRES — JWT / mots de passe / email / headers
+ * ============================================================ */
 export function readJWT(token) {
   try {
     if (!token) return null;
     const part = token.split(".")[1];
     return JSON.parse(atob(part.replace(/-/g, "+").replace(/_/g, "/")));
+  } catch {
+    return null;
+  }
+}
+
+export function decodeJWT(token) {
+  try {
+    const payload = token.split(".")[1];
+    return JSON.parse(atob(payload));
   } catch {
     return null;
   }
@@ -70,6 +85,13 @@ export function jsonHeaders(token) {
   };
 }
 
+/* ============================================================
+ * 3) COUCHE RÉSEAU — fetch brut + refresh automatique du token
+ * ============================================================ */
+
+// Toutes les requêtes API passent par ce wrapper natif.
+window.__rawFetch = window.fetch.bind(window);
+
 export async function tryRefreshToken() {
   const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
   if (!refreshToken) return null;
@@ -81,11 +103,15 @@ export async function tryRefreshToken() {
       body: JSON.stringify({ refreshToken }),
     });
     if (!response.ok) return null;
+
     const data = await response.json();
     if (!data.token) return null;
+
     localStorage.setItem(ACCESS_TOKEN_KEY, data.token);
-    if (data.refreshToken)
+    if (data.refreshToken) {
       localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
+    }
+
     window.dispatchEvent(
       new CustomEvent("voilier-token-refreshed", { detail: data.token })
     );
@@ -108,7 +134,7 @@ export async function apiFetch(input, options = {}, retry = true) {
   opts.signal = opts.signal || controller.signal;
 
   try {
-    let response = await window.__rawFetch(input, opts);
+    const response = await window.__rawFetch(input, opts);
 
     if (response.status === 401 && hasBearer && retry) {
       const newToken = await tryRefreshToken();
@@ -128,8 +154,9 @@ export async function apiFetch(input, options = {}, retry = true) {
   }
 }
 
-// Toutes les requêtes API passent par ce wrapper.
-window.__rawFetch = window.fetch.bind(window);
+/* ============================================================
+ * 4) THÈME / COULEURS DES GRAPHIQUES
+ * ============================================================ */
 
 // Palette cohérente avec le thème (navy / brass / teal / coral),
 // utilisée par les graphiques de la page Statistiques.
@@ -141,20 +168,11 @@ const CHART_COLORS = {
   Occupée: "#c1584c",
 };
 const CHART_FALLBACK = ["#1f4267", "#8aa8bd", "#c9a24b", "#4f8f86", "#c1584c"];
+
 export function colorForKey(key, index) {
   return CHART_COLORS[key] || CHART_FALLBACK[index % CHART_FALLBACK.length];
 }
 
-export function decodeJWT(token) {
-  try {
-    const payload = token.split(".")[1];
-    return JSON.parse(atob(payload));
-  } catch {
-    return null;
-  }
-}
-
-/* ================== THEME (dark mode) ================== */
 export function useTheme() {
   const [theme, setTheme] = useState(
     () => localStorage.getItem("voilier_theme") || "light"
@@ -166,9 +184,12 @@ export function useTheme() {
   return [theme, setTheme];
 }
 
-/* ================== TOASTS ================== */
+/* ============================================================
+ * 5) TOASTS (notifications)
+ * ============================================================ */
 let toastId = 0;
 let pushToastRef = null;
+
 export function toast(message, type = "success") {
   if (pushToastRef) pushToastRef(message, type);
 }
@@ -214,9 +235,12 @@ function ToastStack() {
   );
 }
 
-/* ================== CONFIRM MODAL ================== */
+/* ============================================================
+ * 6) MODALE DE CONFIRMATION
+ * ============================================================ */
 let confirmResolveRef = null;
 let requestConfirmRef = null;
+
 export function askConfirm(options) {
   return new Promise((resolve) => {
     if (requestConfirmRef) {
@@ -279,7 +303,10 @@ function ConfirmModal() {
   );
 }
 
-/* ================== PASSWORD INPUT (show/hide) ================== */
+/* ============================================================
+ * 7) COMPOSANTS UI GÉNÉRIQUES RÉUTILISABLES
+ * ============================================================ */
+
 function PasswordInput({ value, onChange, placeholder, required }) {
   const [visible, setVisible] = useState(false);
   return (
@@ -306,7 +333,6 @@ function PasswordInput({ value, onChange, placeholder, required }) {
   );
 }
 
-/* ================== EMPTY STATE ILLUSTRÉ ================== */
 export function EmptyState({ title, subtitle }) {
   return (
     <div className="empty-state-illus">
@@ -334,7 +360,7 @@ export function EmptyState({ title, subtitle }) {
   );
 }
 
-/* ================== SKELETONS ================== */
+/* --- Skeletons (états de chargement) --- */
 function TablesGridSkeleton({ count = 8 }) {
   return (
     <div className="tables-grid">
@@ -382,7 +408,7 @@ function MenuListSkeleton({ count = 3 }) {
   );
 }
 
-/* ================== GRAPHIQUE EN BARRES (HISTOGRAMME) ================== */
+/* --- Graphiques --- */
 export function BarChartStat({ data }) {
   const max = Math.max(...data.map((d) => d.value), 1);
   const total = data.reduce((s, d) => s + d.value, 0) || 1;
@@ -453,7 +479,6 @@ export function BarChartStat({ data }) {
   );
 }
 
-/* ================== GRAPHIQUE CIRCULAIRE (DONUT) ================== */
 export function DonutChartStat({ data, size = 148, thickness = 24 }) {
   const total = data.reduce((sum, d) => sum + d.value, 0) || 1;
   const radius = (size - thickness) / 2;
@@ -574,6 +599,7 @@ export function DonutChartStat({ data, size = 148, thickness = 24 }) {
   );
 }
 
+/* --- Hooks & helpers divers --- */
 export function useDebouncedValue(value, delay = 300) {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -652,6 +678,9 @@ export function printPDF(title) {
   }, 500);
 }
 
+/* ============================================================
+ * 8) AUTHENTIFICATION — Login / Register
+ * ============================================================ */
 function LoginPage({
   onLoginSuccess,
   onGoToRegister,
@@ -662,6 +691,7 @@ function LoginPage({
   const [motDePasse, setMotDePasse] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
   const [lockedUntil, setLockedUntil] = useState(
     Number(localStorage.getItem("voilier_login_locked_until") || 0)
   );
@@ -686,10 +716,12 @@ function LoginPage({
     e.preventDefault();
     setError("");
 
+    // Protection contre trop de tentatives
     if (lockedUntil && Date.now() < lockedUntil) {
       setError("Trop de tentatives. Réessayez dans quelques secondes.");
       return;
     }
+
     if (!validEmail(email)) {
       setError("Veuillez saisir une adresse email valide.");
       return;
@@ -701,52 +733,62 @@ function LoginPage({
 
     setLoading(true);
     try {
-      const response = await apiFetch(`${API_URL}/login`, {
+      // Client -> /api/login | Admin -> /api/admin/login
+      const loginEndpoint = adminOnly
+        ? `${API_URL}/admin/login`
+        : `${API_URL}/login`;
+
+      const response = await apiFetch(loginEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, motDePasse }),
       });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.message || "Email ou mot de passe incorrect");
 
-      if (adminOnly) {
-        const loginPayload = decodeJWT(data.token);
-        if (
-          !loginPayload ||
-          !Array.isArray(loginPayload.roles) ||
-          !loginPayload.roles.includes("ROLE_ADMIN")
-        ) {
-          throw new Error(
-            "Accès refusé : ce compte n'est pas un compte administrateur."
-          );
-        }
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || data.message || "Email ou mot de passe incorrect"
+        );
+      }
+      if (!data.token) {
+        throw new Error("Token de connexion manquant.");
       }
 
-      localStorage.setItem("token", data.token);
-      if (data.refreshToken)
-        localStorage.setItem("refreshToken", data.refreshToken);
+      localStorage.setItem(ACCESS_TOKEN_KEY, data.token);
+      if (data.refreshToken) {
+        localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
+      }
+
       localStorage.setItem("voilier_login_attempts", "0");
       localStorage.removeItem("voilier_login_locked_until");
+      setFailedAttempts(0);
+      setLockedUntil(0);
+
       toast("Connexion réussie.", "success");
       onLoginSuccess(data.token);
     } catch (err) {
+      const message =
+        err?.message || "Une erreur est survenue lors de la connexion.";
       const nextAttempts = failedAttempts + 1;
+
       if (nextAttempts >= 5) {
         const until = Date.now() + 30000;
         localStorage.setItem("voilier_login_locked_until", String(until));
-        setLockedUntil(until);
         localStorage.setItem("voilier_login_attempts", "0");
+        setLockedUntil(until);
         setFailedAttempts(0);
-        setError(
-          "Trop de tentatives. Connexion temporairement bloquée 30 secondes."
-        );
+
+        const lockMessage =
+          "Trop de tentatives. Connexion temporairement bloquée 30 secondes.";
+        setError(lockMessage);
+        toast(lockMessage, "error");
       } else {
         localStorage.setItem("voilier_login_attempts", String(nextAttempts));
         setFailedAttempts(nextAttempts);
-        setError(err.message);
+        setError(message);
+        toast(message, "error");
       }
-      toast(err.message, "error");
     } finally {
       setLoading(false);
     }
@@ -760,9 +802,11 @@ function LoginPage({
           <h1>Le Voilier</h1>
           <div className="subtitle">HÔTEL EL MEHDI</div>
         </div>
+
         <h2 className="section-title">
           {adminOnly ? "Connexion administrateur" : "Connexion"}
         </h2>
+
         <form onSubmit={handleSubmit}>
           <label className="field-label">Email</label>
           <input
@@ -771,24 +815,30 @@ function LoginPage({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            autoComplete="email"
           />
+
           <label className="field-label">Mot de passe</label>
           <PasswordInput
             value={motDePasse}
             onChange={(e) => setMotDePasse(e.target.value)}
             required
           />
+
           <button type="submit" disabled={loading}>
             {loading ? "Connexion..." : "Se connecter"}
           </button>
+
           {error && <p className="error">{error}</p>}
         </form>
+
         {!adminOnly && onGoToRegister && (
           <p className="link-switch">
             Pas encore de compte ?{" "}
             <a onClick={onGoToRegister}>Créer un compte</a>
           </p>
         )}
+
         {onGoToHome && (
           <p className="link-switch back-home-link">
             <a onClick={onGoToHome}>← Retour à l'accueil</a>
@@ -812,6 +862,7 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
     if (!validEmail(email)) {
       setError("Veuillez saisir une adresse email valide.");
       return;
@@ -822,6 +873,7 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
       );
       return;
     }
+
     setLoading(true);
     try {
       const response = await apiFetch(`${API_URL}/register`, {
@@ -832,6 +884,7 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.error || "Erreur lors de l'inscription");
+
       toast("Compte créé avec succès.", "success");
       onRegisterSuccess(email);
     } catch (err) {
@@ -850,7 +903,9 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
           <h1>Le Voilier</h1>
           <div className="subtitle">HÔTEL EL MEHDI</div>
         </div>
+
         <h2 className="section-title">Créer un compte</h2>
+
         <form onSubmit={handleSubmit}>
           <div className="row-2">
             <div>
@@ -872,6 +927,7 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
               />
             </div>
           </div>
+
           <label className="field-label">Email</label>
           <input
             type="email"
@@ -880,6 +936,7 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
+
           <label className="field-label">Téléphone</label>
           <input
             type="tel"
@@ -887,12 +944,14 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
             value={telephone}
             onChange={(e) => setTelephone(e.target.value)}
           />
+
           <label className="field-label">Mot de passe</label>
           <PasswordInput
             value={motDePasse}
             onChange={(e) => setMotDePasse(e.target.value)}
             required
           />
+
           <div className="password-strength" aria-live="polite">
             <div className="password-strength-bar">
               <div
@@ -909,11 +968,14 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
               <span>8+ caractères · maj · min · chiffre · symbole</span>
             </div>
           </div>
+
           <button type="submit" disabled={loading}>
             {loading ? "Création..." : "Créer mon compte"}
           </button>
+
           {error && <p className="error">{error}</p>}
         </form>
+
         <p className="link-switch">
           Déjà un compte ? <a onClick={onGoToLogin}>Se connecter</a>
         </p>
@@ -922,6 +984,9 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
   );
 }
 
+/* ============================================================
+ * 9) ESPACE CLIENT — Réservation d'une table
+ * ============================================================ */
 function ChoixTable({ tables, onSelect, loading }) {
   const [filtreCapacite, setFiltreCapacite] = useState("tous");
 
@@ -1046,7 +1111,6 @@ function FormulaireReservation({ table, token, onRetour, onSuccess }) {
       });
 
       const data = await response.json();
-
       if (!response.ok)
         throw new Error(data.error || "Erreur lors de la réservation");
 
@@ -1127,7 +1191,7 @@ function SectionReserver({ token, onDone }) {
     chargerTables();
   }, []);
 
-  const handleSuccess = (id) => {
+  const handleSuccess = () => {
     setSelectedTable(null);
     chargerTables();
     onDone();
@@ -1161,6 +1225,9 @@ function SectionReserver({ token, onDone }) {
   );
 }
 
+/* ============================================================
+ * 10) ESPACE CLIENT — Mes réservations
+ * ============================================================ */
 function SectionMesReservations({ token, refreshKey }) {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1216,6 +1283,7 @@ function SectionMesReservations({ token, refreshKey }) {
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.error || "Erreur lors de l'annulation");
+
       toast("Réservation annulée.", "success");
       charger();
     } catch (err) {
@@ -1248,6 +1316,7 @@ function SectionMesReservations({ token, refreshKey }) {
       </div>
       <div className="main-card">
         {error && <p className="error">{error}</p>}
+
         <div className="filter-grid">
           <div>
             <label className="field-label">Date</label>
@@ -1323,7 +1392,66 @@ function SectionMesReservations({ token, refreshKey }) {
   );
 }
 
-/* ================== ÉTOILES / NOTE ================== */
+/* ============================================================
+ * 11) ESPACE CLIENT — Menu & avis sur les plats
+ * ============================================================ */
+export const CATEGORIES_MENU_VOILIER = [
+  "LES SALADES DU VOILIER",
+  "LES ENTRÉES CHAUDES",
+  "LES SPÉCIALITÉS EN PLAT",
+  "LES PLATS",
+  "LES PIZZAS",
+  "LES DESSERTS",
+  "EAU MINÉRALE",
+  "SIROPS",
+  "SODAS",
+  "BOISSONS ÉNERGÉTIQUES",
+];
+
+export function categorieVoilier(categorie) {
+  const c = (categorie || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  if (c.includes("salad")) return "LES SALADES DU VOILIER";
+  if (c.includes("entree") || c.includes("entrée"))
+    return "LES ENTRÉES CHAUDES";
+  if (c.includes("special") || c.includes("spécial"))
+    return "LES SPÉCIALITÉS EN PLAT";
+  if (c === "plat" || c === "plats" || c.includes("plat principal"))
+    return "LES PLATS";
+  if (c.includes("pizza")) return "LES PIZZAS";
+  if (c.includes("dessert")) return "LES DESSERTS";
+  if (c.includes("eau") || c.includes("mineral")) return "EAU MINÉRALE";
+  if (c.includes("sirop")) return "SIROPS";
+  if (c.includes("soda")) return "SODAS";
+  if (c.includes("boisson energetique") || c.includes("energetique"))
+    return "BOISSONS ÉNERGÉTIQUES";
+  return categorie || "LES PLATS";
+}
+
+export function imagePlatCategorie(categorie) {
+  const c = (categorie || "").toLowerCase();
+  if (c.includes("pizza"))
+    return "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=900&q=80";
+  if (c.includes("dessert"))
+    return "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=900&q=80";
+  if (c.includes("boisson"))
+    return "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=900&q=80";
+  if (c.includes("mer") || c.includes("poisson"))
+    return "https://images.unsplash.com/photo-1534080564583-6be75777b70a?auto=format&fit=crop&w=900&q=80";
+  if (c.includes("pâte") || c.includes("pates"))
+    return "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=900&q=80";
+  return "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=80";
+}
+
+export function urlImagePlat(plat) {
+  if (!plat.image) return imagePlatCategorie(plat.categorie);
+  if (/^https?:\/\//i.test(plat.image)) return plat.image;
+  const chemin = plat.image.replace(/^\/+/, "");
+  return `${ASSETS_URL}/${chemin}`;
+}
+
 function EtoilesInput({ note, onChange }) {
   return (
     <div style={{ display: "flex", gap: "4px", margin: "8px 0" }}>
@@ -1344,7 +1472,6 @@ function EtoilesInput({ note, onChange }) {
   );
 }
 
-/* ================== AVIS SUR UN PLAT ================== */
 function FormulaireAvisPlat({ platId, token, onSuccess, onCancel }) {
   const [note, setNote] = useState(5);
   const [commentaire, setCommentaire] = useState("");
@@ -1367,6 +1494,7 @@ function FormulaireAvisPlat({ platId, token, onSuccess, onCancel }) {
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.error || "Erreur lors de l'envoi de l'avis");
+
       toast("Merci pour votre avis !", "success");
       onSuccess();
     } catch (err) {
@@ -1404,28 +1532,6 @@ function FormulaireAvisPlat({ platId, token, onSuccess, onCancel }) {
       {error && <p className="error">{error}</p>}
     </form>
   );
-}
-
-export function imagePlatCategorie(categorie) {
-  const c = (categorie || "").toLowerCase();
-  if (c.includes("pizza"))
-    return "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=900&q=80";
-  if (c.includes("dessert"))
-    return "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=900&q=80";
-  if (c.includes("boisson"))
-    return "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=900&q=80";
-  if (c.includes("mer") || c.includes("poisson"))
-    return "https://images.unsplash.com/photo-1534080564583-6be75777b70a?auto=format&fit=crop&w=900&q=80";
-  if (c.includes("pâte") || c.includes("pates"))
-    return "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=900&q=80";
-  return "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=80";
-}
-
-export function urlImagePlat(plat) {
-  if (!plat.image) return imagePlatCategorie(plat.categorie);
-  if (/^https?:\/\//i.test(plat.image)) return plat.image;
-  const chemin = plat.image.replace(/^\/+/, "");
-  return `${ASSETS_URL}/${chemin}`;
 }
 
 function CartePlat({ plat, token, onAvisAjoute }) {
@@ -1625,7 +1731,6 @@ function SectionMenu({ token }) {
               const platsCategorie = platsFiltres.filter(
                 (plat) => plat.categorieVoilier === categorie
               );
-
               if (platsCategorie.length === 0) return null;
 
               return (
@@ -1653,7 +1758,9 @@ function SectionMenu({ token }) {
   );
 }
 
-/* ================== RÉCLAMATIONS (CLIENT) ================== */
+/* ============================================================
+ * 12) ESPACE CLIENT — Réclamations
+ * ============================================================ */
 function FormulaireReclamation({ token, reservations, onSuccess }) {
   const [reservationId, setReservationId] = useState("");
   const [sujet, setSujet] = useState("");
@@ -1680,6 +1787,7 @@ function FormulaireReclamation({ token, reservations, onSuccess }) {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Erreur lors de l'envoi");
+
       setSujet("");
       setDescription("");
       setReservationId("");
@@ -1778,10 +1886,6 @@ function SectionReclamationsClient({ token }) {
     charger();
   }, []);
 
-  const handleSuccess = () => {
-    charger();
-  };
-
   return (
     <>
       <div className="main-header">
@@ -1797,7 +1901,7 @@ function SectionReclamationsClient({ token }) {
           <FormulaireReclamation
             token={token}
             reservations={reservations}
-            onSuccess={handleSuccess}
+            onSuccess={charger}
           />
         )}
         {error && <p className="error">{error}</p>}
@@ -1835,6 +1939,9 @@ function SectionReclamationsClient({ token }) {
   );
 }
 
+/* ============================================================
+ * 13) ESPACE CLIENT — Paramètres du compte
+ * ============================================================ */
 function SectionParametresClient({ payload, onLogout }) {
   return (
     <>
@@ -1865,6 +1972,9 @@ function SectionParametresClient({ payload, onLogout }) {
   );
 }
 
+/* ============================================================
+ * 14) I18N — Sélecteur de langue
+ * ============================================================ */
 function getLanguage() {
   return localStorage.getItem("voilier_lang") || "fr";
 }
@@ -1897,10 +2007,9 @@ export function LanguageSwitcher() {
   );
 }
 
-function decodeJWTPayload(token) {
-  return decodeJWT(token);
-}
-
+/* ============================================================
+ * 15) SHELL CLIENT — Sidebar + routing des sections
+ * ============================================================ */
 function ReservationPage({ token, onLogout }) {
   const [section, setSection] = useState("reserver");
   const [refreshKey, setRefreshKey] = useState(0);
@@ -1923,6 +2032,7 @@ function ReservationPage({ token, onLogout }) {
           <img src="logo.png" alt="El Mehdi" />
           <h2>Le Voilier</h2>
         </button>
+
         <div className="sidebar-nav">
           {navItems.map((item) => (
             <button
@@ -1936,6 +2046,7 @@ function ReservationPage({ token, onLogout }) {
             </button>
           ))}
         </div>
+
         <div className="sidebar-footer-wrap">
           <button
             type="button"
@@ -1998,40 +2109,9 @@ function ReservationPage({ token, onLogout }) {
   );
 }
 
-export const CATEGORIES_MENU_VOILIER = [
-  "LES SALADES DU VOILIER",
-  "LES ENTRÉES CHAUDES",
-  "LES SPÉCIALITÉS EN PLAT",
-  "LES PLATS",
-  "LES PIZZAS",
-  "LES DESSERTS",
-  "EAU MINÉRALE",
-  "SIROPS",
-  "SODAS",
-  "BOISSONS ÉNERGÉTIQUES",
-];
-
-export function categorieVoilier(categorie) {
-  const c = (categorie || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  if (c.includes("salad")) return "LES SALADES DU VOILIER";
-  if (c.includes("entree") || c.includes("entrée"))
-    return "LES ENTRÉES CHAUDES";
-  if (c.includes("special") || c.includes("spécial"))
-    return "LES SPÉCIALITÉS EN PLAT";
-  if (c === "plat" || c === "plats" || c.includes("plat principal"))
-    return "LES PLATS";
-  if (c.includes("pizza")) return "LES PIZZAS";
-  if (c.includes("dessert")) return "LES DESSERTS";
-  if (c.includes("eau") || c.includes("mineral")) return "EAU MINÉRALE";
-  if (c.includes("sirop")) return "SIROPS";
-  if (c.includes("soda")) return "SODAS";
-  if (c.includes("boisson energetique") || c.includes("energetique"))
-    return "BOISSONS ÉNERGÉTIQUES";
-  return categorie || "LES PLATS";
-}
+/* ============================================================
+ * 16) PAGE PUBLIQUE — Accueil + QR code d'accès client
+ * ============================================================ */
 function QRCodeClient() {
   const loginUrl =
     "https://restaurantvoilier-frontend.frajaya629.workers.dev/?page=login";
@@ -2041,7 +2121,6 @@ function QRCodeClient() {
       <div className="qr-image-box">
         <QRCodeSVG value={loginUrl} size={200} level="H" includeMargin={true} />
       </div>
-
       <small>Scannez avec votre téléphone</small>
     </div>
   );
@@ -2085,13 +2164,15 @@ function PublicRestaurantPage({ onGoToAdminLogin }) {
   );
 }
 
+/* ============================================================
+ * 17) APP — Point d'entrée : routing + session
+ * ============================================================ */
 function App() {
   const [token, setToken] = useState(localStorage.getItem(ACCESS_TOKEN_KEY));
 
   const [view, setView] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     const page = params.get("page");
-
     if (page === "admin-login") return "admin-login";
     if (page === "login") return "login";
     if (page === "register") return "register";
@@ -2140,12 +2221,10 @@ function App() {
     const onRefreshed = (e) => setToken(e.detail);
 
     const onPageShow = (e) => {
-      if (e.persisted) {
-        window.location.reload();
-      }
+      if (e.persisted) window.location.reload();
     };
-    window.addEventListener("pageshow", onPageShow);
 
+    window.addEventListener("pageshow", onPageShow);
     window.addEventListener("voilier-session-expired", onExpired);
     window.addEventListener("voilier-token-refreshed", onRefreshed);
     const timer = setInterval(checkSession, 15000);
