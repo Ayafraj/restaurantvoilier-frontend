@@ -6,9 +6,8 @@ import { QRCodeSVG } from "qrcode.react";
 // URLs de production — backend Symfony déployé sur Railway.
 // Plus besoin de l'IP locale du PC ni du port 8000.
 export const API_URL =
-  "https://restaurantvoilier-production.up.railway.app/api";
-export const ASSETS_URL = "https://restaurantvoilier-production.up.railway.app";
-
+  "https://restaurantvoilier-production-3c05.up.railway.app/api";
+export const ASSETS_URL = "https://restaurantvoilier-production-3c05.up.railway.app";
 /*
  * IMPORTANT — sécurité backend à faire côté serveur :
  * 1. motDePasse => bcrypt/Argon2id, jamais en clair.
