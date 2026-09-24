@@ -23,6 +23,60 @@ import {
   imagePlatCategorie,
 } from "./App";
 
+/* ================== SUGGESTIONS D'IMAGES ================== */
+const IMAGES_PLATS = [
+  "assiette_elmehdi",
+  "brick_crevettes",
+  "brick_thon",
+  "calamar_dore",
+  "chevrettes_panees",
+  "chevrettes_sautees",
+  "cotelettes_agneau",
+  "crepe_fourree",
+  "crevettes_royales",
+  "demi_poulet_carbonnade",
+  "escalope_dinde",
+  "filet_poivre_champignons",
+  "foie_grille",
+  "fruits",
+  "grillade_mixte",
+  "lahma_mechwiya",
+  "makaroni_fruits_mer",
+  "methaouma",
+  "mezza",
+  "ojja_merguez_chevrettes",
+  "pizza_fruits_mer_pistou",
+  "pizza_oeuf",
+  "pizza_thon",
+  "pizza_vegetarienne",
+  "plat_fruits_mer",
+  "poisson_jour",
+  "salade_cezar",
+  "salade_fruits_mer",
+  "salade_mechouia",
+  "salade_tomate",
+  "salade_tunisienne",
+  "seiche_grillee",
+  "sorbet",
+  "spaghetti_poisson",
+  "spaghetti_poulet",
+];
+const IMAGES_BOISSONS = [
+  "boga",
+  "coca_cola",
+  "eau_naturelle",
+  "fanta",
+  "red_bull",
+  "schweppes",
+  "sirop_grenadine",
+  "sirop_menthe",
+];
+// ⚠️ extension supposée .jpg — à adapter si tes fichiers sont en .png etc.
+const IMAGE_PATH_SUGGESTIONS = [
+  ...IMAGES_PLATS.map((n) => `images/plats/${n}.jpg`),
+  ...IMAGES_BOISSONS.map((n) => `images/boissons/${n}.jpg`),
+];
+
 /* ================== HELPERS BUSINESS HUB ================== */
 function readLocalJSON(key, fallback) {
   try {
@@ -1240,6 +1294,7 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
   const [prix, setPrix] = useState(plat.prix ?? "");
   const [quantite, setQuantite] = useState(plat.quantite ?? "");
   const [categorie, setCategorie] = useState(plat.categorie || "");
+  const [image, setImage] = useState(plat.image || "");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [suppression, setSuppression] = useState(false);
@@ -1263,6 +1318,7 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
           prix: parseFloat(prix),
           quantite: parseInt(quantite),
           categorie,
+          image,
         }),
       });
       const data = await response.json();
@@ -1316,6 +1372,13 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
         <input
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+        />
+        <label className="field-label">Image (chemin)</label>
+        <input
+          list="images-suggestions"
+          value={image}
+          onChange={(e) => setImage(e.target.value)}
+          placeholder="images/plats/salade_cezar.jpg"
         />
         <div className="row-2">
           <div>
@@ -1517,6 +1580,7 @@ function SectionGererMenu({ token }) {
   const [description, setDescription] = useState("");
   const [prix, setPrix] = useState("");
   const [categorie, setCategorie] = useState("");
+  const [image, setImage] = useState("");
   const [nouvelleCategorie, setNouvelleCategorie] = useState("");
   const [categories, setCategories] = useState(() => {
     try {
@@ -1602,6 +1666,7 @@ function SectionGererMenu({ token }) {
           description,
           prix: parseFloat(prix),
           categorie,
+          image,
         }),
       });
 
@@ -1616,6 +1681,7 @@ function SectionGererMenu({ token }) {
       setNom("");
       setDescription("");
       setPrix("");
+      setImage("");
       setShowPlatForm(false);
       charger();
     } catch (err) {
@@ -1628,6 +1694,12 @@ function SectionGererMenu({ token }) {
 
   return (
     <>
+      <datalist id="images-suggestions">
+        {IMAGE_PATH_SUGGESTIONS.map((p) => (
+          <option key={p} value={p} />
+        ))}
+      </datalist>
+
       <div className="main-header">
         <h1>Gérer le menu</h1>
         <p>Ajoutez les plats et organisez votre menu par catégories</p>
@@ -1697,6 +1769,15 @@ function SectionGererMenu({ token }) {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Description du plat"
+              />
+
+              <label className="field-label">Image (chemin)</label>
+              <input
+                type="text"
+                list="images-suggestions"
+                value={image}
+                onChange={(e) => setImage(e.target.value)}
+                placeholder="images/plats/salade_cezar.jpg"
               />
 
               <label className="field-label">Catégorie</label>

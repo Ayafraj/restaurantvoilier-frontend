@@ -129,8 +129,9 @@ export async function apiFetch(input, options = {}, retry = true) {
   const hasBearer = authHeader && /^Bearer\s+/i.test(opts.headers[authHeader]);
 
   // Timeout réseau : évite les boutons bloqués indéfiniment.
+  // 45s pour laisser le temps au cold start de Railway.
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
+  const timeout = setTimeout(() => controller.abort(), 45000);
   opts.signal = opts.signal || controller.signal;
 
   try {
@@ -149,6 +150,13 @@ export async function apiFetch(input, options = {}, retry = true) {
     }
 
     return response;
+  } catch (err) {
+    if (err.name === "AbortError") {
+      throw new Error(
+        "Le serveur a mis du temps à répondre. Vérifiez la liste avant de renvoyer — votre demande a peut-être bien été enregistrée."
+      );
+    }
+    throw err;
   } finally {
     clearTimeout(timeout);
   }
@@ -2229,6 +2237,9 @@ function App() {
     window.addEventListener("voilier-token-refreshed", onRefreshed);
     const timer = setInterval(checkSession, 15000);
     checkSession();
+
+    // Réveille le backend Railway dès le chargement de l'app (évite le cold start plus tard)
+    window.__rawFetch(`${API_URL}/tables`).catch(() => {});
 
     return () => {
       clearInterval(timer);
