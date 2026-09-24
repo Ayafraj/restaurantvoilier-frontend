@@ -431,6 +431,167 @@ function SectionBusinessHub({ token }) {
   );
 }
 
+/* ================== TOUTES LES RÉSERVATIONS (ADMIN - LISTE) ================== */
+function SectionToutesReservations({ token }) {
+  const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("Tous");
+  const [search, setSearch] = useState("");
+  const searchDebounced = useDebouncedValue(search, 300);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  const charger = () => {
+    setLoading(true);
+    apiFetch(`${API_URL}/reservations`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => setReservations(Array.isArray(data) ? data : []))
+      .catch(() => {
+        setError("Erreur chargement réservations");
+        toast("Erreur chargement réservations", "error");
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    charger();
+  }, []);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchDebounced, dateFilter, statusFilter]);
+
+  const reservationsFiltrees = reservations.filter((r) => {
+    const matchDate =
+      !dateFilter || String(r.date || "").slice(0, 10) === dateFilter;
+    const matchStatus = statusFilter === "Tous" || r.statut === statusFilter;
+    const q = searchDebounced.trim().toLowerCase();
+    const matchSearch =
+      !q ||
+      `${r.table || ""} ${r.date || ""} ${r.heure || ""} ${r.clientNom || ""} ${
+        r.client || ""
+      }`
+        .toLowerCase()
+        .includes(q);
+    return matchDate && matchStatus && matchSearch;
+  });
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(reservationsFiltrees.length / pageSize)
+  );
+  const visibleReservations = reservationsFiltrees.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
+
+  return (
+    <>
+      <div className="main-header">
+        <h1>Toutes les réservations</h1>
+        <p>Vue globale de toutes les réservations clients</p>
+      </div>
+      <div className="main-card">
+        {error && <p className="error">{error}</p>}
+
+        <div className="filter-grid">
+          <div>
+            <label className="field-label">Date</label>
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="field-label">Statut</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option>Tous</option>
+              <option>Confirmée</option>
+              <option>Annulée</option>
+            </select>
+          </div>
+          <div>
+            <label className="field-label">Recherche</label>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Client, table, date..."
+            />
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            margin: "14px 0",
+          }}
+        >
+          <span className="pagination-info">
+            {reservationsFiltrees.length} résultat(s)
+          </span>
+          <button
+            type="button"
+            onClick={charger}
+            style={{
+              width: "auto",
+              margin: 0,
+              fontSize: "12px",
+              padding: "7px 14px",
+            }}
+          >
+            Actualiser
+          </button>
+        </div>
+
+        {loading ? (
+          <ReservationsListSkeleton />
+        ) : reservations.length === 0 ? (
+          <EmptyState title="Aucune réservation" />
+        ) : (
+          <>
+            {visibleReservations.map((r) => (
+              <div key={r.id} className="reservation-item">
+                <div className="row">
+                  <strong>
+                    Table {r.table} — {r.date}
+                  </strong>
+                  <span
+                    className={`badge-statut ${
+                      r.statut === "Confirmée" ? "confirmee" : "annulee"
+                    }`}
+                  >
+                    {r.statut}
+                  </span>
+                </div>
+                <p>
+                  {r.clientNom || r.client} · {r.heure} · {r.nombrePersonnes}{" "}
+                  {r.nombrePersonnes > 1 ? "personnes" : "personne"}
+                </p>
+              </div>
+            ))}
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
 /* ================== STATISTIQUES ================== */
 function SectionStatistiques({ stats }) {
   if (!stats) return null;
@@ -2273,6 +2434,7 @@ export default function AdminPage({ token, onLogout }) {
 
   const navItems = [
     { key: "stats", icon: "📊", label: "Statistiques" },
+    { key: "reservations", icon: "📅", label: "Réservations" },
     { key: "business", icon: "💰", label: "Business & Engagement" },
     { key: "tables", icon: "🍽️", label: "Gérer les tables" },
     { key: "comptes", icon: "👥", label: "Comptes clients" },
@@ -2358,6 +2520,9 @@ export default function AdminPage({ token, onLogout }) {
 
       <div className="main-content">
         {section === "stats" && <SectionStatistiques stats={stats} />}
+        {section === "reservations" && (
+          <SectionToutesReservations token={token} />
+        )}
         {section === "business" && <SectionBusinessHub token={token} />}
         {section === "tables" && <SectionGererTables token={token} />}
         {section === "menu" && <SectionGererMenu token={token} />}
