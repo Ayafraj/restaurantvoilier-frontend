@@ -22,6 +22,8 @@ import {
   urlImagePlat,
   imagePlatCategorie,
 } from "./App";
+import { useTranslation } from "./useTranslation";
+import { translateStatus, translateCategoryName } from "./translations";
 
 /* ================== SUGGESTIONS D'IMAGES ================== */
 const IMAGES_PLATS = [
@@ -116,6 +118,7 @@ function ReservationDateValue(r) {
 
 /* ================== BUSINESS & ENGAGEMENT ================== */
 function SectionBusinessHub({ token }) {
+  const { t } = useTranslation();
   const [reservations, setReservations] = useState([]);
   const [clients, setClients] = useState([]);
   const [plats, setPlats] = useState([]);
@@ -254,18 +257,18 @@ function SectionBusinessHub({ token }) {
   };
   const saveBasket = () => {
     localStorage.setItem("voilier_avg_basket", String(avgBasket));
-    toast("Panier moyen enregistré", "success");
+    toast(t("changesSaved"), "success");
   };
 
   return (
     <>
       <div className="main-header">
-        <h1>Business & Engagement</h1>
+        <h1>{t("businessEngagement")}</h1>
         <p>Fidélisation, promotions, segmentation et pilotage commercial</p>
       </div>
       <div className="bi-grid">
         <div className="bi-card">
-          <h3>💰 Revenu estimé</h3>
+          <h3>💰 {t("totalRevenue")}</h3>
           <div className="bi-value">{formatDT(estimatedRevenue)}</div>
           <div className="bi-muted">personnes réservées × panier moyen</div>
         </div>
@@ -280,7 +283,7 @@ function SectionBusinessHub({ token }) {
           </div>
         </div>
         <div className="bi-card">
-          <h3>📅 Ce mois</h3>
+          <h3>📅 {t("thisMonth")}</h3>
           <div className="bi-value">{monthNow}</div>
           <div className="bi-muted">
             {delta >= 0 ? "▲" : "▼"} {Math.abs(delta)}% vs mois précédent
@@ -306,7 +309,7 @@ function SectionBusinessHub({ token }) {
               onChange={(e) => setAvgBasket(e.target.value)}
             />
           </div>
-          <button onClick={saveBasket}>Enregistrer</button>
+          <button onClick={saveBasket}>{t("save")}</button>
         </div>
         <div className="main-card">
           <h2>⏰ Heures de pointe</h2>
@@ -354,7 +357,7 @@ function SectionBusinessHub({ token }) {
             value={promoValue}
             onChange={(e) => setPromoValue(e.target.value)}
           />
-          <button onClick={addPromo}>＋ Créer</button>
+          <button onClick={addPromo}>＋ {t("add")}</button>
         </div>
         {promos.map((p) => (
           <div className="bi-row" key={p.id}>
@@ -388,7 +391,7 @@ function SectionBusinessHub({ token }) {
             onChange={(e) => setOfferPrice(e.target.value)}
             placeholder="Prix DT"
           />
-          <button onClick={addOffer}>＋ Ajouter</button>
+          <button onClick={addOffer}>＋ {t("add")}</button>
         </div>
         {offers.map((o) => (
           <div className="bi-row" key={o.id}>
@@ -426,13 +429,14 @@ function SectionBusinessHub({ token }) {
           </div>
         </div>
       </div>
-      {loading && <p className="bi-muted">Chargement des données business…</p>}
+      {loading && <p className="bi-muted">{t("loading")}</p>}
     </>
   );
 }
 
 /* ================== TOUTES LES RÉSERVATIONS (ADMIN - LISTE) ================== */
 function SectionToutesReservations({ token }) {
+  const { t, lang } = useTranslation();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -451,8 +455,8 @@ function SectionToutesReservations({ token }) {
       .then((res) => res.json())
       .then((data) => setReservations(Array.isArray(data) ? data : []))
       .catch(() => {
-        setError("Erreur chargement réservations");
-        toast("Erreur chargement réservations", "error");
+        setError(t("impossibleLoad"));
+        toast(t("impossibleLoad"), "error");
       })
       .finally(() => setLoading(false));
   };
@@ -492,7 +496,7 @@ function SectionToutesReservations({ token }) {
   return (
     <>
       <div className="main-header">
-        <h1>Toutes les réservations</h1>
+        <h1>{t("allReservationsNav")}</h1>
         <p>Vue globale de toutes les réservations clients</p>
       </div>
       <div className="main-card">
@@ -500,7 +504,7 @@ function SectionToutesReservations({ token }) {
 
         <div className="filter-grid">
           <div>
-            <label className="field-label">Date</label>
+            <label className="field-label">{t("date")}</label>
             <input
               type="date"
               value={dateFilter}
@@ -508,18 +512,18 @@ function SectionToutesReservations({ token }) {
             />
           </div>
           <div>
-            <label className="field-label">Statut</label>
+            <label className="field-label">{t("tableStatus")}</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option>Tous</option>
-              <option>Confirmée</option>
-              <option>Annulée</option>
+              <option value="Tous">{t("allStatuses")}</option>
+              <option value="Confirmée">{t("confirmed")}</option>
+              <option value="Annulée">{t("cancelled")}</option>
             </select>
           </div>
           <div>
-            <label className="field-label">Recherche</label>
+            <label className="field-label">{t("search")}</label>
             <input
               type="search"
               value={search}
@@ -550,33 +554,33 @@ function SectionToutesReservations({ token }) {
               padding: "7px 14px",
             }}
           >
-            Actualiser
+            {t("refresh")}
           </button>
         </div>
 
         {loading ? (
           <ReservationsListSkeleton />
         ) : reservations.length === 0 ? (
-          <EmptyState title="Aucune réservation" />
+          <EmptyState title={t("noReservations")} />
         ) : (
           <>
             {visibleReservations.map((r) => (
               <div key={r.id} className="reservation-item">
                 <div className="row">
                   <strong>
-                    Table {r.table} — {r.date}
+                    {t("table")} {r.table} — {r.date}
                   </strong>
                   <span
                     className={`badge-statut ${
                       r.statut === "Confirmée" ? "confirmee" : "annulee"
                     }`}
                   >
-                    {r.statut}
+                    {translateStatus(r.statut, lang)}
                   </span>
                 </div>
                 <p>
                   {r.clientNom || r.client} · {r.heure} · {r.nombrePersonnes}{" "}
-                  {r.nombrePersonnes > 1 ? "personnes" : "personne"}
+                  {r.nombrePersonnes > 1 ? t("people") : t("person")}
                 </p>
               </div>
             ))}
@@ -594,43 +598,48 @@ function SectionToutesReservations({ token }) {
 
 /* ================== STATISTIQUES ================== */
 function SectionStatistiques({ stats }) {
+  const { t, lang } = useTranslation();
   if (!stats) return null;
 
   const reservationsData = Object.entries(
     stats.reservationsParStatut || {}
   ).map(([label, value], i) => ({
-    label,
+    label: translateStatus(label, lang),
     value,
     color: colorForKey(label, i),
   }));
   const tablesData = Object.entries(stats.tablesParEtat || {}).map(
-    ([label, value], i) => ({ label, value, color: colorForKey(label, i) })
+    ([label, value], i) => ({
+      label: translateStatus(label, lang),
+      value,
+      color: colorForKey(label, i),
+    })
   );
 
   const kpis = [
     {
-      label: "Clients",
+      label: t("clients"),
       value: stats.totalClients,
       icon: "👤",
       tint: "#eaf2ef",
       color: "#2f6f66",
     },
     {
-      label: "Réservations",
+      label: t("reservations"),
       value: stats.totalReservations,
       icon: "📅",
       tint: "#f4ecd9",
       color: "#8a6a24",
     },
     {
-      label: `Avis · ${stats.noteMoyenneGlobale ?? "-"}/5`,
+      label: `${t("reviews")} · ${stats.noteMoyenneGlobale ?? "-"}/5`,
       value: stats.totalAvis,
       icon: "⭐",
       tint: "#f6e9df",
       color: "#a15a3f",
     },
     {
-      label: "Réclamations",
+      label: t("complaints"),
       value: stats.totalReclamations,
       icon: "📩",
       tint: "#e9edf3",
@@ -641,8 +650,8 @@ function SectionStatistiques({ stats }) {
   return (
     <>
       <div className="main-header">
-        <h1>Statistiques</h1>
-        <p>Vue d'ensemble de l'activité du restaurant</p>
+        <h1>{t("statisticsTitle")}</h1>
+        <p>{t("statisticsOverview")}</p>
         <div className="export-actions">
           <button
             type="button"
@@ -788,11 +797,11 @@ function SectionStatistiques({ stats }) {
                 📊
               </span>
               <strong style={{ fontSize: 14.5, color: "var(--navy-950)" }}>
-                Réservations par statut
+                {t("reservationsByStatus")}
               </strong>
             </div>
             {reservationsData.length === 0 ? (
-              <EmptyState title="Aucune donnée" />
+              <EmptyState title={t("noData")} />
             ) : (
               <BarChartStat data={reservationsData} />
             )}
@@ -829,11 +838,11 @@ function SectionStatistiques({ stats }) {
                 🍽️
               </span>
               <strong style={{ fontSize: 14.5, color: "var(--navy-950)" }}>
-                Tables par état
+                {t("tablesByState")}
               </strong>
             </div>
             {tablesData.length === 0 ? (
-              <EmptyState title="Aucune donnée" />
+              <EmptyState title={t("noData")} />
             ) : (
               <DonutChartStat data={tablesData} />
             )}
@@ -846,6 +855,7 @@ function SectionStatistiques({ stats }) {
 
 /* ================== RÉCLAMATIONS (ADMIN) ================== */
 function SectionReclamations({ token, reclamations, onChange }) {
+  const { t, lang } = useTranslation();
   const changerStatut = async (id, statut) => {
     await apiFetch(`${API_URL}/reclamations/${id}/statut`, {
       method: "PATCH",
@@ -855,20 +865,23 @@ function SectionReclamations({ token, reclamations, onChange }) {
       },
       body: JSON.stringify({ statut }),
     });
-    toast(`Réclamation marquée « ${statut} ».`, "success");
+    toast(
+      `Réclamation marquée « ${translateStatus(statut, lang)} ».`,
+      "success"
+    );
     onChange();
   };
 
   return (
     <>
       <div className="main-header">
-        <h1>Réclamations</h1>
+        <h1>{t("complaints")}</h1>
         <p>Suivi et traitement des réclamations clients</p>
       </div>
       <div className="main-card">
         {reclamations.length === 0 ? (
           <EmptyState
-            title="Aucune réclamation"
+            title={t("noComplaints")}
             subtitle="Aucune réclamation n'a été déposée."
           />
         ) : (
@@ -881,7 +894,7 @@ function SectionReclamations({ token, reclamations, onChange }) {
                     r.statut === "Résolue" ? "confirmee" : "annulee"
                   }`}
                 >
-                  {r.statut}
+                  {translateStatus(r.statut, lang)}
                 </span>
               </div>
               <p>{r.description}</p>
@@ -927,6 +940,7 @@ function SectionReclamations({ token, reclamations, onChange }) {
 
 /* ================== GÉRER LES TABLES (ADMIN) ================== */
 function CarteTableAdmin({ table, token, onChange }) {
+  const { t, lang } = useTranslation();
   const [enEdition, setEnEdition] = useState(false);
   const [numero, setNumero] = useState(table.numero);
   const [capacite, setCapacite] = useState(table.capacite);
@@ -946,8 +960,11 @@ function CarteTableAdmin({ table, token, onChange }) {
         body: JSON.stringify({ statut }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Erreur changement état");
-      toast(`Table ${table.numero} → ${statut}`, "success");
+      if (!response.ok) throw new Error(data.error || t("error"));
+      toast(
+        `${t("table")} ${table.numero} → ${translateStatus(statut, lang)}`,
+        "success"
+      );
       onChange();
     } catch (err) {
       setError(err.message);
@@ -957,9 +974,11 @@ function CarteTableAdmin({ table, token, onChange }) {
 
   const handleSupprimer = async () => {
     const ok = await askConfirm({
-      title: "Supprimer la table",
-      message: `Voulez-vous vraiment supprimer la Table ${table.numero} ? Cette action est irréversible.`,
-      confirmLabel: "Supprimer",
+      title: t("deleteTable"),
+      message: `${t("confirmDelete")} ${t("table")} ${table.numero}. ${t(
+        "deleteIrreversible"
+      )}`,
+      confirmLabel: t("delete"),
       tone: "danger",
     });
     if (!ok) return;
@@ -972,8 +991,11 @@ function CarteTableAdmin({ table, token, onChange }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Erreur suppression");
-      toast(`Table ${table.numero} supprimée.`, "success");
+      if (!response.ok) throw new Error(data.error || t("error"));
+      toast(
+        `${t("table")} ${table.numero} ${t("delete").toLowerCase()}e.`,
+        "success"
+      );
       onChange();
     } catch (err) {
       setError(err.message);
@@ -999,8 +1021,8 @@ function CarteTableAdmin({ table, token, onChange }) {
         }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Erreur modification");
-      toast("Table modifiée avec succès.", "success");
+      if (!response.ok) throw new Error(data.error || t("error"));
+      toast(t("changesSaved"), "success");
       setEnEdition(false);
       onChange();
     } catch (err) {
@@ -1014,13 +1036,13 @@ function CarteTableAdmin({ table, token, onChange }) {
   if (enEdition) {
     return (
       <div className="admin-table-card">
-        <label className="field-label">Numéro</label>
+        <label className="field-label">{t("tableNumber")}</label>
         <input
           type="number"
           value={numero}
           onChange={(e) => setNumero(e.target.value)}
         />
-        <label className="field-label">Capacité</label>
+        <label className="field-label">{t("capacity")}</label>
         <input
           type="number"
           value={capacite}
@@ -1032,14 +1054,14 @@ function CarteTableAdmin({ table, token, onChange }) {
             disabled={loading}
             style={{ margin: 0, background: "#4f8f86" }}
           >
-            {loading ? "..." : "Enregistrer"}
+            {loading ? "..." : t("save")}
           </button>
           <button
             onClick={() => setEnEdition(false)}
             className="danger"
             style={{ margin: 0 }}
           >
-            Annuler
+            {t("cancel")}
           </button>
         </div>
         {error && (
@@ -1054,17 +1076,19 @@ function CarteTableAdmin({ table, token, onChange }) {
   return (
     <div className="admin-table-card">
       <div className="row">
-        <strong>Table {table.numero}</strong>
+        <strong>
+          {t("table")} {table.numero}
+        </strong>
         <span
           className={`badge-statut ${
             table.statut === "Libre" ? "confirmee" : "annulee"
           }`}
         >
-          {table.statut}
+          {translateStatus(table.statut, lang)}
         </span>
       </div>
       <p style={{ margin: 0, color: "var(--ink-soft)", fontSize: "12px" }}>
-        {table.capacite} personnes
+        {table.capacite} {t("people")}
       </p>
       <div className="etat-buttons">
         {["Libre", "Réservée", "Occupée"].map((s) => (
@@ -1077,13 +1101,13 @@ function CarteTableAdmin({ table, token, onChange }) {
                 table.statut === s ? "var(--navy-700)" : "var(--ink-soft)",
             }}
           >
-            {s}
+            {translateStatus(s, lang)}
           </button>
         ))}
       </div>
       <div className="etat-buttons">
         <button onClick={() => setEnEdition(true)} style={{ margin: 0 }}>
-          Modifier
+          {t("edit")}
         </button>
         <button
           onClick={handleSupprimer}
@@ -1091,7 +1115,7 @@ function CarteTableAdmin({ table, token, onChange }) {
           disabled={suppression}
           style={{ margin: 0 }}
         >
-          {suppression ? "..." : "Supprimer"}
+          {suppression ? "..." : t("delete")}
         </button>
       </div>
       {error && (
@@ -1104,6 +1128,7 @@ function CarteTableAdmin({ table, token, onChange }) {
 }
 
 function SectionGererTables({ token }) {
+  const { t } = useTranslation();
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -1126,8 +1151,8 @@ function SectionGererTables({ token }) {
       .then((res) => res.json())
       .then((data) => setTables(Array.isArray(data) ? data : []))
       .catch(() => {
-        setError("Erreur chargement tables");
-        toast("Erreur chargement tables", "error");
+        setError(t("impossibleLoad"));
+        toast(t("impossibleLoad"), "error");
       })
       .finally(() => setLoading(false));
   };
@@ -1153,8 +1178,11 @@ function SectionGererTables({ token }) {
         }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Erreur ajout");
-      toast(`Table ${data.numero} ajoutée.`, "success");
+      if (!response.ok) throw new Error(data.error || t("error"));
+      toast(
+        `${t("table")} ${data.numero} ${t("add").toLowerCase()}e.`,
+        "success"
+      );
       setNumero("");
       setCapacite("");
       charger();
@@ -1209,9 +1237,11 @@ function SectionGererTables({ token }) {
 
   const handleSupprimerTout = async () => {
     const ok = await askConfirm({
-      title: "Supprimer toutes les tables",
-      message: `Supprimer les ${tables.length} tables existantes ? Cette action est irréversible.`,
-      confirmLabel: "Tout supprimer",
+      title: t("deleteTable"),
+      message: `Supprimer les ${tables.length} tables existantes ? ${t(
+        "deleteIrreversible"
+      )}`,
+      confirmLabel: t("delete"),
       tone: "danger",
     });
     if (!ok) return;
@@ -1222,9 +1252,9 @@ function SectionGererTables({ token }) {
     let succes = 0;
     let echecs = 0;
 
-    for (const t of tables) {
+    for (const t2 of tables) {
       try {
-        const response = await apiFetch(`${API_URL}/tables/${t.id}`, {
+        const response = await apiFetch(`${API_URL}/tables/${t2.id}`, {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -1249,7 +1279,7 @@ function SectionGererTables({ token }) {
   return (
     <>
       <div className="main-header">
-        <h1>Gérer les tables</h1>
+        <h1>{t("manageTablesNav")}</h1>
         <p>Ajout, disponibilité et suppression des tables</p>
       </div>
 
@@ -1271,7 +1301,7 @@ function SectionGererTables({ token }) {
             }}
             style={{ width: "auto", margin: 0, padding: "10px 16px" }}
           >
-            {showTableForm ? "✕ Fermer" : "＋ Ajouter une table"}
+            {showTableForm ? `✕ ${t("close")}` : `＋ ${t("addTable")}`}
           </button>
 
           <button
@@ -1288,7 +1318,7 @@ function SectionGererTables({ token }) {
               background: "#4f8f86",
             }}
           >
-            {showBulkForm ? "✕ Fermer" : "＋ Ajouter plusieurs tables"}
+            {showBulkForm ? `✕ ${t("close")}` : "＋ Ajouter plusieurs tables"}
           </button>
         </div>
 
@@ -1300,10 +1330,10 @@ function SectionGererTables({ token }) {
               marginTop: "18px",
             }}
           >
-            <h3>Ajouter une table</h3>
+            <h3>{t("addTable")}</h3>
             <form onSubmit={handleAjouter} className="row-2">
               <div>
-                <label className="field-label">Numéro</label>
+                <label className="field-label">{t("tableNumber")}</label>
                 <input
                   type="number"
                   value={numero}
@@ -1313,7 +1343,7 @@ function SectionGererTables({ token }) {
                 />
               </div>
               <div>
-                <label className="field-label">Capacité</label>
+                <label className="field-label">{t("capacity")}</label>
                 <input
                   type="number"
                   value={capacite}
@@ -1327,7 +1357,7 @@ function SectionGererTables({ token }) {
                 disabled={addLoading}
                 style={{ gridColumn: "1 / -1" }}
               >
-                {addLoading ? "Ajout en cours..." : "Ajouter la table"}
+                {addLoading ? t("saving") : t("addTable")}
               </button>
             </form>
           </div>
@@ -1375,7 +1405,9 @@ function SectionGererTables({ token }) {
                 />
               </div>
               <div style={{ gridColumn: "1 / -1" }}>
-                <label className="field-label">Capacité (personnes)</label>
+                <label className="field-label">
+                  {t("capacity")} ({t("people")})
+                </label>
                 <input
                   type="number"
                   value={bulkCapacite}
@@ -1389,7 +1421,7 @@ function SectionGererTables({ token }) {
                 disabled={bulkLoading}
                 style={{ gridColumn: "1 / -1" }}
               >
-                {bulkLoading ? "Ajout en cours..." : "Ajouter ces tables"}
+                {bulkLoading ? t("saving") : "Ajouter ces tables"}
               </button>
             </form>
           </div>
@@ -1407,7 +1439,9 @@ function SectionGererTables({ token }) {
             marginBottom: "14px",
           }}
         >
-          <h3 style={{ margin: 0 }}>Tables existantes ({tables.length})</h3>
+          <h3 style={{ margin: 0 }}>
+            {t("tables")} ({tables.length})
+          </h3>
           {tables.length > 0 && (
             <button
               onClick={handleSupprimerTout}
@@ -1420,7 +1454,7 @@ function SectionGererTables({ token }) {
                 padding: "7px 14px",
               }}
             >
-              {suppressionLoading ? "Suppression..." : "Tout supprimer"}
+              {suppressionLoading ? "..." : "Tout supprimer"}
             </button>
           )}
         </div>
@@ -1428,13 +1462,13 @@ function SectionGererTables({ token }) {
         {loading ? (
           <AdminGridSkeleton />
         ) : tables.length === 0 ? (
-          <EmptyState title="Aucune table" />
+          <EmptyState title={t("noTables")} />
         ) : (
           <div className="admin-tables-grid">
-            {tables.map((t) => (
+            {tables.map((tb) => (
               <CarteTableAdmin
-                key={t.id}
-                table={t}
+                key={tb.id}
+                table={tb}
                 token={token}
                 onChange={charger}
               />
@@ -1448,6 +1482,7 @@ function SectionGererTables({ token }) {
 
 /* ================== GÉRER LE MENU (ADMIN) ================== */
 function CartePlatAdmin({ plat, token, categories, onChange }) {
+  const { t, lang } = useTranslation();
   const [enEdition, setEnEdition] = useState(false);
   const [afficherDetails, setAfficherDetails] = useState(false);
   const [nom, setNom] = useState(plat.nom);
@@ -1484,8 +1519,8 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
       });
       const data = await response.json();
       if (!response.ok)
-        throw new Error(data.error || data.message || "Erreur modification");
-      toast("Plat modifié avec succès.", "success");
+        throw new Error(data.error || data.message || t("error"));
+      toast(t("changesSaved"), "success");
       setEnEdition(false);
       onChange();
     } catch (err) {
@@ -1498,9 +1533,11 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
 
   const handleSupprimer = async () => {
     const ok = await askConfirm({
-      title: "Supprimer le plat",
-      message: `Supprimer le plat « ${plat.nom} » ? Cette action est irréversible.`,
-      confirmLabel: "Supprimer",
+      title: t("deleteDish"),
+      message: `${t("confirmDelete")} « ${plat.nom} ». ${t(
+        "deleteIrreversible"
+      )}`,
+      confirmLabel: t("delete"),
       tone: "danger",
     });
     if (!ok) return;
@@ -1513,8 +1550,8 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Erreur suppression");
-      toast(`Plat « ${plat.nom} » supprimé.`, "success");
+      if (!response.ok) throw new Error(data.error || t("error"));
+      toast(`« ${plat.nom} » ${t("delete").toLowerCase()}.`, "success");
       onChange();
     } catch (err) {
       setError(err.message);
@@ -1527,14 +1564,14 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
   if (enEdition) {
     return (
       <div className="admin-table-card">
-        <label className="field-label">Nom du plat</label>
+        <label className="field-label">{t("dishName")}</label>
         <input value={nom} onChange={(e) => setNom(e.target.value)} />
-        <label className="field-label">Description</label>
+        <label className="field-label">{t("complaintDescription")}</label>
         <input
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
-        <label className="field-label">Image (chemin)</label>
+        <label className="field-label">{t("dishImage")}</label>
         <input
           list="images-suggestions"
           value={image}
@@ -1543,7 +1580,7 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
         />
         <div className="row-2">
           <div>
-            <label className="field-label">Prix (DT)</label>
+            <label className="field-label">{t("price")} (DT)</label>
             <input
               type="number"
               min="0"
@@ -1553,7 +1590,7 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
             />
           </div>
           <div>
-            <label className="field-label">Quantité</label>
+            <label className="field-label">{t("quantity")}</label>
             <input
               type="number"
               min="0"
@@ -1562,7 +1599,7 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
             />
           </div>
         </div>
-        <label className="field-label">Catégorie</label>
+        <label className="field-label">{t("category")}</label>
         <select
           value={categorie}
           onChange={(e) => setCategorie(e.target.value)}
@@ -1579,14 +1616,14 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
             disabled={loading}
             style={{ margin: 0, background: "#4f8f86" }}
           >
-            {loading ? "..." : "Enregistrer"}
+            {loading ? "..." : t("save")}
           </button>
           <button
             onClick={() => setEnEdition(false)}
             className="danger"
             style={{ margin: 0 }}
           >
-            Annuler
+            {t("cancel")}
           </button>
         </div>
         {error && (
@@ -1650,7 +1687,7 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
                 fontWeight: 700,
               }}
             >
-              {plat.categorie}
+              {translateCategoryName(categorieVoilier(plat.categorie), lang)}
             </span>
           )}
           <p
@@ -1684,18 +1721,18 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
             {plat.description || "Aucune description."}
           </p>
           <div className="settings-row" style={{ padding: "6px 0" }}>
-            <span>Quantité en stock</span>
+            <span>{t("availableQuantity")}</span>
             <strong>{plat.quantite ?? "-"}</strong>
           </div>
           <div
             className="settings-row"
             style={{ padding: "6px 0", borderBottom: "none" }}
           >
-            <span>Disponibilité</span>
+            <span>{t("available")}</span>
             <span
               className={`badge-statut ${disponible ? "confirmee" : "annulee"}`}
             >
-              {disponible ? "Disponible" : "Indisponible"}
+              {disponible ? t("dishAvailable") : t("dishUnavailable")}
             </span>
           </div>
         </div>
@@ -1709,7 +1746,7 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
           }}
           style={{ margin: 0 }}
         >
-          Modifier
+          {t("edit")}
         </button>
         <button
           onClick={(e) => {
@@ -1720,7 +1757,7 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
           disabled={suppression}
           style={{ margin: 0 }}
         >
-          {suppression ? "..." : "Supprimer"}
+          {suppression ? "..." : t("delete")}
         </button>
       </div>
       {error && (
@@ -1733,6 +1770,7 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
 }
 
 function SectionGererMenu({ token }) {
+  const { t } = useTranslation();
   const [plats, setPlats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPlatForm, setShowPlatForm] = useState(false);
@@ -1772,8 +1810,8 @@ function SectionGererMenu({ token }) {
       .then((res) => res.json())
       .then((data) => setPlats(Array.isArray(data) ? data : []))
       .catch(() => {
-        setError("Impossible de charger le menu");
-        toast("Impossible de charger le menu", "error");
+        setError(t("impossibleLoad"));
+        toast(t("impossibleLoad"), "error");
       })
       .finally(() => setLoading(false));
   };
@@ -1833,12 +1871,10 @@ function SectionGererMenu({ token }) {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(
-          data.error || data.message || "Erreur lors de l'ajout du plat"
-        );
+        throw new Error(data.error || data.message || t("error"));
       }
 
-      toast(`Plat « ${data.nom || nom} » ajouté avec succès.`, "success");
+      toast(`« ${data.nom || nom} » ${t("add").toLowerCase()}é.`, "success");
       setNom("");
       setDescription("");
       setPrix("");
@@ -1862,7 +1898,7 @@ function SectionGererMenu({ token }) {
       </datalist>
 
       <div className="main-header">
-        <h1>Gérer le menu</h1>
+        <h1>{t("manageMenuNav")}</h1>
         <p>Ajoutez les plats et organisez votre menu par catégories</p>
       </div>
 
@@ -1884,7 +1920,7 @@ function SectionGererMenu({ token }) {
             }}
             style={{ width: "auto", margin: 0, padding: "10px 16px" }}
           >
-            {showPlatForm ? "✕ Fermer" : "＋ Ajouter un plat"}
+            {showPlatForm ? `✕ ${t("close")}` : `＋ ${t("addDish")}`}
           </button>
 
           <button
@@ -1901,7 +1937,7 @@ function SectionGererMenu({ token }) {
               background: "#4f8f86",
             }}
           >
-            {showCategorieForm ? "✕ Fermer" : "＋ Ajouter une catégorie"}
+            {showCategorieForm ? `✕ ${t("close")}` : `＋ ${t("addCategory")}`}
           </button>
         </div>
 
@@ -1913,9 +1949,9 @@ function SectionGererMenu({ token }) {
               marginTop: "18px",
             }}
           >
-            <h3>Ajouter un plat</h3>
+            <h3>{t("addDish")}</h3>
             <form onSubmit={handleAjouterPlat}>
-              <label className="field-label">Nom du plat</label>
+              <label className="field-label">{t("dishName")}</label>
               <input
                 type="text"
                 value={nom}
@@ -1924,7 +1960,7 @@ function SectionGererMenu({ token }) {
                 required
               />
 
-              <label className="field-label">Description</label>
+              <label className="field-label">{t("complaintDescription")}</label>
               <input
                 type="text"
                 value={description}
@@ -1932,7 +1968,7 @@ function SectionGererMenu({ token }) {
                 placeholder="Description du plat"
               />
 
-              <label className="field-label">Image (chemin)</label>
+              <label className="field-label">{t("dishImage")}</label>
               <input
                 type="text"
                 list="images-suggestions"
@@ -1941,13 +1977,13 @@ function SectionGererMenu({ token }) {
                 placeholder="images/plats/salade_cezar.jpg"
               />
 
-              <label className="field-label">Catégorie</label>
+              <label className="field-label">{t("category")}</label>
               <select
                 value={categorie}
                 onChange={(e) => setCategorie(e.target.value)}
                 required
               >
-                <option value="">-- Choisir une catégorie --</option>
+                <option value="">-- {t("category")} --</option>
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
@@ -1955,7 +1991,7 @@ function SectionGererMenu({ token }) {
                 ))}
               </select>
 
-              <label className="field-label">Prix (DT)</label>
+              <label className="field-label">{t("price")} (DT)</label>
               <input
                 type="number"
                 min="0"
@@ -1967,7 +2003,7 @@ function SectionGererMenu({ token }) {
               />
 
               <button type="submit" disabled={addLoading}>
-                {addLoading ? "Ajout en cours..." : "Ajouter le plat"}
+                {addLoading ? t("saving") : t("addDish")}
               </button>
             </form>
           </div>
@@ -1981,7 +2017,7 @@ function SectionGererMenu({ token }) {
               marginTop: "18px",
             }}
           >
-            <h3>Ajouter une catégorie</h3>
+            <h3>{t("addCategory")}</h3>
             <p
               style={{
                 color: "var(--ink-soft)",
@@ -2001,7 +2037,7 @@ function SectionGererMenu({ token }) {
                 placeholder="Ex : Pizzas"
                 required
               />
-              <button type="submit">Ajouter la catégorie</button>
+              <button type="submit">{t("addCategory")}</button>
             </form>
           </div>
         )}
@@ -2018,7 +2054,9 @@ function SectionGererMenu({ token }) {
             marginBottom: "14px",
           }}
         >
-          <h3 style={{ margin: 0 }}>Plats du menu ({plats.length})</h3>
+          <h3 style={{ margin: 0 }}>
+            {t("dishes")} ({plats.length})
+          </h3>
           <button
             type="button"
             onClick={charger}
@@ -2029,14 +2067,14 @@ function SectionGererMenu({ token }) {
               padding: "7px 14px",
             }}
           >
-            Actualiser
+            {t("refresh")}
           </button>
         </div>
 
         {loading ? (
           <AdminGridSkeleton count={3} />
         ) : plats.length === 0 ? (
-          <EmptyState title="Aucun plat" subtitle="Le menu est vide." />
+          <EmptyState title={t("noDishes")} subtitle="Le menu est vide." />
         ) : (
           (() => {
             const terme = searchDebounced.trim().toLowerCase();
@@ -2153,6 +2191,7 @@ function SectionGererMenu({ token }) {
 
 /* ================== COMPTES CLIENTS (ADMIN) ================== */
 function SectionGererComptes({ token }) {
+  const { t } = useTranslation();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -2172,8 +2211,8 @@ function SectionGererComptes({ token }) {
       })
       .then((data) => setClients(Array.isArray(data) ? data : []))
       .catch(() => {
-        setError("Erreur chargement clients");
-        toast("Erreur chargement clients", "error");
+        setError(t("impossibleLoad"));
+        toast(t("impossibleLoad"), "error");
       })
       .finally(() => setLoading(false));
   };
@@ -2198,9 +2237,8 @@ function SectionGererComptes({ token }) {
         body: JSON.stringify({ actif: !actifActuel }),
       });
       const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Erreur changement statut");
-      toast("Statut mis à jour.", "success");
+      if (!response.ok) throw new Error(data.error || t("error"));
+      toast(t("changesSaved"), "success");
       charger();
     } catch (err) {
       setError(err.message);
@@ -2222,7 +2260,7 @@ function SectionGererComptes({ token }) {
   return (
     <>
       <div className="main-header">
-        <h1>Comptes clients</h1>
+        <h1>{t("clientAccounts")}</h1>
         <p>Liste des clients et gestion de leur accès</p>
       </div>
       <div className="main-card">
@@ -2232,8 +2270,8 @@ function SectionGererComptes({ token }) {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher un client..."
-            aria-label="Rechercher un client"
+            placeholder={t("searchClient")}
+            aria-label={t("searchClient")}
           />
           <span className="pagination-info">
             {filteredClients.length} résultat(s)
@@ -2284,6 +2322,7 @@ function SectionGererComptes({ token }) {
 
 /* ================== AVIS DES PLATS (ADMIN) ================== */
 function SectionAvisPlats({ token }) {
+  const { t } = useTranslation();
   const [avisList, setAvisList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -2302,8 +2341,8 @@ function SectionAvisPlats({ token }) {
         setAvisList(plats);
       })
       .catch(() => {
-        setError("Erreur chargement des avis des plats");
-        toast("Erreur chargement des avis des plats", "error");
+        setError(t("impossibleLoad"));
+        toast(t("impossibleLoad"), "error");
       })
       .finally(() => setLoading(false));
   };
@@ -2315,7 +2354,7 @@ function SectionAvisPlats({ token }) {
   return (
     <>
       <div className="main-header">
-        <h1>Avis des plats</h1>
+        <h1>{t("dishReviewsNav")}</h1>
         <p>Notes et commentaires laissés par les clients sur les plats</p>
       </div>
       <div className="main-card">
@@ -2337,7 +2376,7 @@ function SectionAvisPlats({ token }) {
               padding: "7px 14px",
             }}
           >
-            Actualiser
+            {t("refresh")}
           </button>
         </div>
 
@@ -2345,7 +2384,7 @@ function SectionAvisPlats({ token }) {
           <ReservationsListSkeleton />
         ) : avisList.length === 0 ? (
           <EmptyState
-            title="Aucun avis"
+            title={t("noReviews")}
             subtitle="Aucun avis sur les plats pour le moment."
           />
         ) : (
@@ -2359,7 +2398,7 @@ function SectionAvisPlats({ token }) {
               </div>
               {a.commentaire && <p>{a.commentaire}</p>}
               <p>
-                {a.client || "Client"} · {a.date || "-"}
+                {a.client || t("client")} · {a.date || "-"}
               </p>
             </div>
           ))
@@ -2371,31 +2410,32 @@ function SectionAvisPlats({ token }) {
 
 /* ================== PARAMÈTRES (ADMIN) ================== */
 function SectionParametresAdmin({ payload, onLogout }) {
+  const { t } = useTranslation();
   const roles = payload?.roles || [];
-  const roleAffiche = roles.includes("ROLE_ADMIN") ? "Admin" : "Client";
+  const roleAffiche = roles.includes("ROLE_ADMIN") ? "Admin" : t("client");
 
   return (
     <>
       <div className="main-header">
-        <h1>Paramètres</h1>
+        <h1>{t("settingsTitle")}</h1>
         <p>Informations du compte administrateur</p>
       </div>
       <div className="main-card">
         <div className="settings-row">
-          <span>Email</span>
+          <span>{t("accountEmail")}</span>
           <strong>{payload?.username || "-"}</strong>
         </div>
         <div className="settings-row">
-          <span>Rôle</span>
+          <span>{t("accountRole")}</span>
           <strong>{roleAffiche}</strong>
         </div>
         <div className="settings-row">
-          <span>Restaurant</span>
+          <span>{t("accountRestaurant")}</span>
           <strong>Le Voilier — Hôtel El Mehdi</strong>
         </div>
         <div style={{ marginTop: "20px" }}>
           <button className="danger" onClick={onLogout}>
-            Se déconnecter
+            {t("logout")}
           </button>
         </div>
       </div>
@@ -2405,6 +2445,7 @@ function SectionParametresAdmin({ payload, onLogout }) {
 
 /* ================== ADMIN PAGE (composant principal) ================== */
 export default function AdminPage({ token, onLogout }) {
+  const { t } = useTranslation();
   const [section, setSection] = useState("stats");
   const [stats, setStats] = useState(null);
   const [reclamations, setReclamations] = useState([]);
@@ -2433,15 +2474,15 @@ export default function AdminPage({ token, onLogout }) {
   }, []);
 
   const navItems = [
-    { key: "stats", icon: "📊", label: "Statistiques" },
-    { key: "reservations", icon: "📅", label: "Réservations" },
-    { key: "business", icon: "💰", label: "Business & Engagement" },
-    { key: "tables", icon: "🍽️", label: "Gérer les tables" },
-    { key: "comptes", icon: "👥", label: "Comptes clients" },
-    { key: "menu", icon: "🍴", label: "Gérer le menu" },
-    { key: "avis", icon: "⭐", label: "Avis plats" },
-    { key: "reclamations", icon: "📩", label: "Réclamations" },
-    { key: "parametres", icon: "⚙️", label: "Paramètres" },
+    { key: "stats", icon: "📊", label: t("statisticsTitle") },
+    { key: "reservations", icon: "📅", label: t("allReservationsNav") },
+    { key: "business", icon: "💰", label: t("businessEngagement") },
+    { key: "tables", icon: "🍽️", label: t("manageTablesNav") },
+    { key: "comptes", icon: "👥", label: t("clientAccounts") },
+    { key: "menu", icon: "🍴", label: t("manageMenuNav") },
+    { key: "avis", icon: "⭐", label: t("dishReviewsNav") },
+    { key: "reclamations", icon: "📩", label: t("complaints") },
+    { key: "parametres", icon: "⚙️", label: t("settings") },
   ];
 
   return (
@@ -2449,7 +2490,7 @@ export default function AdminPage({ token, onLogout }) {
       <div className="sidebar">
         <button className="sidebar-logo" onClick={() => setSection("stats")}>
           <img src="logo.png" alt="El Mehdi" />
-          <h2>Le Voilier</h2>
+          <h2>{t("appName")}</h2>
         </button>
         <button
           type="button"
@@ -2512,7 +2553,7 @@ export default function AdminPage({ token, onLogout }) {
               }}
             >
               <span className="icon">🚪</span>
-              <span>Déconnexion</span>
+              <span>{t("logout")}</span>
             </button>
           </div>
         </div>

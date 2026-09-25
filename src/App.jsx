@@ -2,6 +2,12 @@ import React, { useState, useEffect } from "react";
 import "./style.css";
 import AdminPage from "./AdminPage";
 import { QRCodeSVG } from "qrcode.react";
+import {
+  useTranslation,
+  setLanguage as setGlobalLanguage,
+  getLanguage,
+} from "./useTranslation";
+import { translateStatus, translateCategoryName } from "./translations";
 
 /* ============================================================
  * 1) CONFIGURATION — URLs de production (backend Symfony / Railway)
@@ -10,18 +16,6 @@ export const API_URL =
   "https://restaurantvoilier-production-3c05.up.railway.app/api";
 export const ASSETS_URL =
   "https://restaurantvoilier-production-3c05.up.railway.app";
-
-/*
- * IMPORTANT — sécurité backend à faire côté serveur :
- * 1. motDePasse => bcrypt/Argon2id, jamais en clair.
- * 2. POST /refresh doit valider un refresh token rotatif et révoquer l'ancien.
- * 3. /login et /register doivent avoir un rate-limit serveur (ex. 5 essais/minute/IP
- *    + limitation par compte), car le blocage JS ci-dessous n'est PAS une sécurité suffisante.
- * 4. Valider et normaliser les données côté serveur (email, password, dates, capacités,
- *    droits admin) même si le client les valide déjà.
- * 5. Pour une vraie disponibilité horaire, POST /reservations doit refuser côté serveur
- *    tout chevauchement table/date/heure.
- */
 
 const ACCESS_TOKEN_KEY = "token";
 const REFRESH_TOKEN_KEY = "refreshToken";
@@ -68,9 +62,16 @@ export function passwordScore(password) {
   return score;
 }
 
-export function passwordStrength(password) {
+export function passwordStrength(password, t) {
   const score = passwordScore(password);
-  const labels = ["Très faible", "Faible", "Moyen", "Bon", "Fort", "Très fort"];
+  const labels = [
+    t("veryWeak"),
+    t("weak"),
+    t("medium"),
+    t("good"),
+    t("strong"),
+    t("veryStrong"),
+  ];
   return { score, label: labels[score], valid: score >= 4 };
 }
 
@@ -88,8 +89,6 @@ export function jsonHeaders(token) {
 /* ============================================================
  * 3) COUCHE RÉSEAU — fetch brut + refresh automatique du token
  * ============================================================ */
-
-// Toutes les requêtes API passent par ce wrapper natif.
 window.__rawFetch = window.fetch.bind(window);
 
 export async function tryRefreshToken() {
@@ -128,8 +127,6 @@ export async function apiFetch(input, options = {}, retry = true) {
   );
   const hasBearer = authHeader && /^Bearer\s+/i.test(opts.headers[authHeader]);
 
-  // Timeout réseau : évite les boutons bloqués indéfiniment.
-  // 45s pour laisser le temps au cold start de Railway.
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45000);
   opts.signal = opts.signal || controller.signal;
@@ -165,9 +162,6 @@ export async function apiFetch(input, options = {}, retry = true) {
 /* ============================================================
  * 4) THÈME / COULEURS DES GRAPHIQUES
  * ============================================================ */
-
-// Palette cohérente avec le thème (navy / brass / teal / coral),
-// utilisée par les graphiques de la page Statistiques.
 const CHART_COLORS = {
   Confirmée: "#4f8f86",
   Annulée: "#c1584c",
@@ -261,6 +255,7 @@ export function askConfirm(options) {
 }
 
 function ConfirmModal() {
+  const { t } = useTranslation();
   const [state, setState] = useState(null);
 
   useEffect(() => {
@@ -285,7 +280,7 @@ function ConfirmModal() {
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
         <h3>
           <span>⚠️</span>
-          <span>{state.title || "Confirmer l'action"}</span>
+          <span>{state.title || t("confirmAction")}</span>
         </h3>
         <p>{state.message}</p>
         <div className="modal-actions">
@@ -294,7 +289,7 @@ function ConfirmModal() {
             onClick={() => close(false)}
             style={{ background: "transparent" }}
           >
-            Annuler
+            {t("cancel")}
           </button>
           <button
             onClick={() => close(true)}
@@ -303,7 +298,7 @@ function ConfirmModal() {
                 state.tone === "danger" ? "#c1584c" : "var(--navy-grad)",
             }}
           >
-            {state.confirmLabel || "Confirmer"}
+            {state.confirmLabel || t("confirm")}
           </button>
         </div>
       </div>
@@ -617,18 +612,8 @@ export function useDebouncedValue(value, delay = 300) {
   return debounced;
 }
 
-function LoadingButton({ loading, children, ...props }) {
-  return (
-    <button {...props} disabled={loading || props.disabled}>
-      <span className="btn-loading">
-        {loading && <span className="spinner" aria-hidden="true" />}
-        {loading ? "Chargement..." : children}
-      </span>
-    </button>
-  );
-}
-
 export function PaginationControls({ page, totalPages, onPageChange }) {
+  const { t } = useTranslation();
   if (totalPages <= 1) return null;
   const pages = [];
   const start = Math.max(1, page - 2);
@@ -660,7 +645,7 @@ export function PaginationControls({ page, totalPages, onPageChange }) {
         ›
       </button>
       <span className="pagination-info">
-        Page {page} / {totalPages}
+        {t("page")} {page} {t("of")} {totalPages}
       </span>
     </div>
   );
@@ -695,6 +680,7 @@ function LoginPage({
   onGoToHome,
   adminOnly = false,
 }) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [error, setError] = useState("");
@@ -724,24 +710,22 @@ function LoginPage({
     e.preventDefault();
     setError("");
 
-    // Protection contre trop de tentatives
     if (lockedUntil && Date.now() < lockedUntil) {
       setError("Trop de tentatives. Réessayez dans quelques secondes.");
       return;
     }
 
     if (!validEmail(email)) {
-      setError("Veuillez saisir une adresse email valide.");
+      setError(t("invalidEmail"));
       return;
     }
     if (!motDePasse) {
-      setError("Veuillez saisir votre mot de passe.");
+      setError(t("passwordRequired"));
       return;
     }
 
     setLoading(true);
     try {
-      // Client -> /api/login | Admin -> /api/admin/login
       const loginEndpoint = adminOnly
         ? `${API_URL}/admin/login`
         : `${API_URL}/login`;
@@ -755,9 +739,7 @@ function LoginPage({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data.error || data.message || "Email ou mot de passe incorrect"
-        );
+        throw new Error(data.error || data.message || t("invalidCredentials"));
       }
       if (!data.token) {
         throw new Error("Token de connexion manquant.");
@@ -773,11 +755,10 @@ function LoginPage({
       setFailedAttempts(0);
       setLockedUntil(0);
 
-      toast("Connexion réussie.", "success");
+      toast(t("loginSuccess"), "success");
       onLoginSuccess(data.token);
     } catch (err) {
-      const message =
-        err?.message || "Une erreur est survenue lors de la connexion.";
+      const message = err?.message || t("error");
       const nextAttempts = failedAttempts + 1;
 
       if (nextAttempts >= 5) {
@@ -807,16 +788,16 @@ function LoginPage({
       <div className="container">
         <div className="logo">
           <img src="logo.png" alt="El Mehdi" className="logo-img" />
-          <h1>Le Voilier</h1>
-          <div className="subtitle">HÔTEL EL MEHDI</div>
+          <h1>{t("appName")}</h1>
+          <div className="subtitle">{t("hotelName")}</div>
         </div>
 
         <h2 className="section-title">
-          {adminOnly ? "Connexion administrateur" : "Connexion"}
+          {adminOnly ? t("adminLogin") : t("login")}
         </h2>
 
         <form onSubmit={handleSubmit}>
-          <label className="field-label">Email</label>
+          <label className="field-label">{t("email")}</label>
           <input
             type="email"
             placeholder="vous@exemple.com"
@@ -826,7 +807,7 @@ function LoginPage({
             autoComplete="email"
           />
 
-          <label className="field-label">Mot de passe</label>
+          <label className="field-label">{t("password")}</label>
           <PasswordInput
             value={motDePasse}
             onChange={(e) => setMotDePasse(e.target.value)}
@@ -834,7 +815,7 @@ function LoginPage({
           />
 
           <button type="submit" disabled={loading}>
-            {loading ? "Connexion..." : "Se connecter"}
+            {loading ? t("loggingIn") : t("loginButton")}
           </button>
 
           {error && <p className="error">{error}</p>}
@@ -842,14 +823,14 @@ function LoginPage({
 
         {!adminOnly && onGoToRegister && (
           <p className="link-switch">
-            Pas encore de compte ?{" "}
-            <a onClick={onGoToRegister}>Créer un compte</a>
+            {t("noAccount")}{" "}
+            <a onClick={onGoToRegister}>{t("createAccount")}</a>
           </p>
         )}
 
         {onGoToHome && (
           <p className="link-switch back-home-link">
-            <a onClick={onGoToHome}>← Retour à l'accueil</a>
+            <a onClick={onGoToHome}>{t("backHome")}</a>
           </p>
         )}
       </div>
@@ -858,6 +839,7 @@ function LoginPage({
 }
 
 function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
+  const { t } = useTranslation();
   const [nom, setNom] = useState("");
   const [prenom, setPrenom] = useState("");
   const [email, setEmail] = useState("");
@@ -865,14 +847,14 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
   const [motDePasse, setMotDePasse] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const forceMotDePasse = passwordStrength(motDePasse);
+  const forceMotDePasse = passwordStrength(motDePasse, t);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     if (!validEmail(email)) {
-      setError("Veuillez saisir une adresse email valide.");
+      setError(t("invalidEmail"));
       return;
     }
     if (!forceMotDePasse.valid) {
@@ -893,7 +875,7 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
       if (!response.ok)
         throw new Error(data.error || "Erreur lors de l'inscription");
 
-      toast("Compte créé avec succès.", "success");
+      toast(t("accountCreated"), "success");
       onRegisterSuccess(email);
     } catch (err) {
       setError(err.message);
@@ -908,16 +890,16 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
       <div className="container">
         <div className="logo">
           <img src="logo.png" alt="El Mehdi" className="logo-img" />
-          <h1>Le Voilier</h1>
-          <div className="subtitle">HÔTEL EL MEHDI</div>
+          <h1>{t("appName")}</h1>
+          <div className="subtitle">{t("hotelName")}</div>
         </div>
 
-        <h2 className="section-title">Créer un compte</h2>
+        <h2 className="section-title">{t("createAccount")}</h2>
 
         <form onSubmit={handleSubmit}>
           <div className="row-2">
             <div>
-              <label className="field-label">Nom</label>
+              <label className="field-label">{t("lastName")}</label>
               <input
                 type="text"
                 value={nom}
@@ -926,7 +908,7 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
               />
             </div>
             <div>
-              <label className="field-label">Prénom</label>
+              <label className="field-label">{t("firstName")}</label>
               <input
                 type="text"
                 value={prenom}
@@ -936,7 +918,7 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
             </div>
           </div>
 
-          <label className="field-label">Email</label>
+          <label className="field-label">{t("email")}</label>
           <input
             type="email"
             placeholder="vous@exemple.com"
@@ -945,15 +927,15 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
             required
           />
 
-          <label className="field-label">Téléphone</label>
+          <label className="field-label">{t("phone")}</label>
           <input
             type="tel"
-            placeholder="Optionnel"
+            placeholder={t("optional")}
             value={telephone}
             onChange={(e) => setTelephone(e.target.value)}
           />
 
-          <label className="field-label">Mot de passe</label>
+          <label className="field-label">{t("password")}</label>
           <PasswordInput
             value={motDePasse}
             onChange={(e) => setMotDePasse(e.target.value)}
@@ -972,20 +954,22 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
               />
             </div>
             <div className="password-strength-text">
-              <span>Force : {forceMotDePasse.label}</span>
-              <span>8+ caractères · maj · min · chiffre · symbole</span>
+              <span>
+                {t("passwordStrength")} : {forceMotDePasse.label}
+              </span>
+              <span>8+ · Aa · 0-9 · !@#</span>
             </div>
           </div>
 
           <button type="submit" disabled={loading}>
-            {loading ? "Création..." : "Créer mon compte"}
+            {loading ? t("creating") : t("createMyAccount")}
           </button>
 
           {error && <p className="error">{error}</p>}
         </form>
 
         <p className="link-switch">
-          Déjà un compte ? <a onClick={onGoToLogin}>Se connecter</a>
+          {t("alreadyAccount")} <a onClick={onGoToLogin}>{t("login")}</a>
         </p>
       </div>
     </div>
@@ -996,12 +980,13 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin }) {
  * 9) ESPACE CLIENT — Réservation d'une table
  * ============================================================ */
 function ChoixTable({ tables, onSelect, loading }) {
+  const { t, lang } = useTranslation();
   const [filtreCapacite, setFiltreCapacite] = useState("tous");
 
   if (loading) {
     return (
       <>
-        <h3>Choisissez une table</h3>
+        <h3>{t("chooseTable")}</h3>
         <TablesGridSkeleton />
       </>
     );
@@ -1014,11 +999,11 @@ function ChoixTable({ tables, onSelect, loading }) {
   const tablesAffichees =
     filtreCapacite === "tous"
       ? tables
-      : tables.filter((t) => t.capacite === Number(filtreCapacite));
+      : tables.filter((tb) => tb.capacite === Number(filtreCapacite));
 
   return (
     <>
-      <h3>Choisissez une table</h3>
+      <h3>{t("chooseTable")}</h3>
 
       {capacitesDisponibles.length > 1 && (
         <div
@@ -1042,7 +1027,7 @@ function ChoixTable({ tables, onSelect, loading }) {
                   : "var(--ink-soft)",
             }}
           >
-            Toutes ({tables.length})
+            {t("all")} ({tables.length})
           </button>
           {capacitesDisponibles.map((cap) => (
             <button
@@ -1059,7 +1044,7 @@ function ChoixTable({ tables, onSelect, loading }) {
                     : "var(--ink-soft)",
               }}
             >
-              {cap} pers.
+              {cap} {t("people")}
             </button>
           ))}
         </div>
@@ -1074,24 +1059,24 @@ function ChoixTable({ tables, onSelect, loading }) {
             }`}
             onClick={() => table.statut === "Libre" && onSelect(table)}
           >
-            <strong>Table {table.numero}</strong>
-            <p>{`${table.capacite} pers.`}</p>
-            <small>{table.statut}</small>
+            <strong>
+              {t("table")} {table.numero}
+            </strong>
+            <p>{`${table.capacite} ${t("people")}`}</p>
+            <small>{translateStatus(table.statut, lang)}</small>
           </div>
         ))}
       </div>
 
       {tablesAffichees.length === 0 && (
-        <EmptyState
-          title="Aucune table"
-          subtitle="Aucune table ne correspond à cette capacité."
-        />
+        <EmptyState title={t("noTable")} subtitle={t("noTableCapacity")} />
       )}
     </>
   );
 }
 
 function FormulaireReservation({ table, token, onRetour, onSuccess }) {
+  const { t } = useTranslation();
   const [date, setDate] = useState("");
   const [heure, setHeure] = useState("");
   const [nombrePersonnes, setNombrePersonnes] = useState(2);
@@ -1119,10 +1104,9 @@ function FormulaireReservation({ table, token, onRetour, onSuccess }) {
       });
 
       const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Erreur lors de la réservation");
+      if (!response.ok) throw new Error(data.error || t("reservationError"));
 
-      toast("Réservation confirmée !", "success");
+      toast(t("reservationConfirmed"), "success");
       onSuccess(data.id);
     } catch (err) {
       setError(err.message);
@@ -1134,32 +1118,36 @@ function FormulaireReservation({ table, token, onRetour, onSuccess }) {
 
   return (
     <>
-      <h3>Détails de la réservation</h3>
+      <h3>{t("reservationDetails")}</h3>
       <div className="selected-badge">
         <div>
-          <strong>Table {table.numero}</strong>
+          <strong>
+            {t("table")} {table.numero}
+          </strong>
           <br />
-          <span>{table.capacite} personnes max</span>
+          <span>
+            {table.capacite} {t("maxPeople")}
+          </span>
         </div>
-        <button onClick={onRetour}>Changer</button>
+        <button onClick={onRetour}>{t("change")}</button>
       </div>
 
       <form onSubmit={handleReserver}>
-        <label className="field-label">Date</label>
+        <label className="field-label">{t("date")}</label>
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
           required
         />
-        <label className="field-label">Heure</label>
+        <label className="field-label">{t("time")}</label>
         <input
           type="time"
           value={heure}
           onChange={(e) => setHeure(e.target.value)}
           required
         />
-        <label className="field-label">Nombre de personnes</label>
+        <label className="field-label">{t("numberOfPeople")}</label>
         <input
           type="number"
           min="1"
@@ -1169,7 +1157,7 @@ function FormulaireReservation({ table, token, onRetour, onSuccess }) {
           required
         />
         <button type="submit" disabled={loading}>
-          {loading ? "Confirmation..." : "Confirmer la réservation"}
+          {loading ? t("confirming") : t("confirmReservation")}
         </button>
         {error && <p className="error">{error}</p>}
       </form>
@@ -1178,6 +1166,7 @@ function FormulaireReservation({ table, token, onRetour, onSuccess }) {
 }
 
 function SectionReserver({ token, onDone }) {
+  const { t } = useTranslation();
   const [tables, setTables] = useState([]);
   const [tablesLoading, setTablesLoading] = useState(true);
   const [selectedTable, setSelectedTable] = useState(null);
@@ -1189,8 +1178,8 @@ function SectionReserver({ token, onDone }) {
       .then((res) => res.json())
       .then((data) => setTables(Array.isArray(data) ? data : []))
       .catch(() => {
-        setError("Impossible de charger les tables");
-        toast("Impossible de charger les tables", "error");
+        setError(t("impossibleLoad"));
+        toast(t("impossibleLoad"), "error");
       })
       .finally(() => setTablesLoading(false));
   };
@@ -1208,8 +1197,8 @@ function SectionReserver({ token, onDone }) {
   return (
     <>
       <div className="main-header">
-        <h1>Réserver une table</h1>
-        <p>Choisissez une table disponible puis complétez votre réservation</p>
+        <h1>{t("reserveTable")}</h1>
+        <p>{t("chooseTable")}</p>
       </div>
       <div className="main-card">
         {error && <p className="error">{error}</p>}
@@ -1237,6 +1226,7 @@ function SectionReserver({ token, onDone }) {
  * 10) ESPACE CLIENT — Mes réservations
  * ============================================================ */
 function SectionMesReservations({ token, refreshKey }) {
+  const { t, lang } = useTranslation();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -1257,8 +1247,8 @@ function SectionMesReservations({ token, refreshKey }) {
       })
       .then((data) => setReservations(Array.isArray(data) ? data : []))
       .catch(() => {
-        setError("Impossible de charger vos réservations");
-        toast("Impossible de charger vos réservations", "error");
+        setError(t("impossibleLoad"));
+        toast(t("impossibleLoad"), "error");
       })
       .finally(() => setLoading(false));
   };
@@ -1269,10 +1259,9 @@ function SectionMesReservations({ token, refreshKey }) {
 
   const handleAnnuler = async (id) => {
     const ok = await askConfirm({
-      title: "Annuler la réservation",
-      message:
-        "Voulez-vous vraiment annuler cette réservation ? Cette action est irréversible.",
-      confirmLabel: "Annuler la réservation",
+      title: t("cancelReservation"),
+      message: t("cancelReservationQuestion"),
+      confirmLabel: t("cancelReservation"),
       tone: "danger",
     });
     if (!ok) return;
@@ -1289,10 +1278,9 @@ function SectionMesReservations({ token, refreshKey }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Erreur lors de l'annulation");
+      if (!response.ok) throw new Error(data.error || t("error"));
 
-      toast("Réservation annulée.", "success");
+      toast(t("reservationCancelled"), "success");
       charger();
     } catch (err) {
       setReservations(previous);
@@ -1319,15 +1307,15 @@ function SectionMesReservations({ token, refreshKey }) {
   return (
     <>
       <div className="main-header">
-        <h1>Mes réservations</h1>
-        <p>Historique et suivi de vos réservations</p>
+        <h1>{t("myReservations")}</h1>
+        <p>{t("reservationHistory")}</p>
       </div>
       <div className="main-card">
         {error && <p className="error">{error}</p>}
 
         <div className="filter-grid">
           <div>
-            <label className="field-label">Date</label>
+            <label className="field-label">{t("date")}</label>
             <input
               type="date"
               value={dateFilter}
@@ -1335,23 +1323,23 @@ function SectionMesReservations({ token, refreshKey }) {
             />
           </div>
           <div>
-            <label className="field-label">Statut</label>
+            <label className="field-label">{t("filters")}</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option>Tous</option>
-              <option>Confirmée</option>
-              <option>Annulée</option>
+              <option value="Tous">{t("allStatuses")}</option>
+              <option value="Confirmée">{t("confirmed")}</option>
+              <option value="Annulée">{t("cancelled")}</option>
             </select>
           </div>
           <div>
-            <label className="field-label">Recherche</label>
+            <label className="field-label">{t("search")}</label>
             <input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Table, date, heure..."
+              placeholder={t("searchPlaceholder")}
             />
           </div>
         </div>
@@ -1360,27 +1348,27 @@ function SectionMesReservations({ token, refreshKey }) {
           <ReservationsListSkeleton />
         ) : reservations.length === 0 ? (
           <EmptyState
-            title="Aucune réservation"
-            subtitle="Vous n'avez aucune réservation pour le moment."
+            title={t("noReservations")}
+            subtitle={t("noReservationsText")}
           />
         ) : (
           reservationsFiltrees.map((r) => (
             <div key={r.id} className="reservation-item">
               <div className="row">
                 <strong>
-                  Table {r.table} — {r.date}
+                  {t("table")} {r.table} — {r.date}
                 </strong>
                 <span
                   className={`badge-statut ${
                     r.statut === "Confirmée" ? "confirmee" : "annulee"
                   }`}
                 >
-                  {r.statut}
+                  {translateStatus(r.statut, lang)}
                 </span>
               </div>
               <p>
                 {`${r.heure} · ${r.nombrePersonnes} ${
-                  r.nombrePersonnes > 1 ? "personnes" : "personne"
+                  r.nombrePersonnes > 1 ? t("people") : t("person")
                 }`}
               </p>
               {r.statut === "Confirmée" && (
@@ -1389,7 +1377,7 @@ function SectionMesReservations({ token, refreshKey }) {
                   onClick={() => handleAnnuler(r.id)}
                   disabled={loadingId === r.id}
                 >
-                  {loadingId === r.id ? "Annulation..." : "Annuler"}
+                  {loadingId === r.id ? t("cancelling") : t("cancel")}
                 </button>
               )}
             </div>
@@ -1481,6 +1469,7 @@ function EtoilesInput({ note, onChange }) {
 }
 
 function FormulaireAvisPlat({ platId, token, onSuccess, onCancel }) {
+  const { t } = useTranslation();
   const [note, setNote] = useState(5);
   const [commentaire, setCommentaire] = useState("");
   const [error, setError] = useState("");
@@ -1500,10 +1489,9 @@ function FormulaireAvisPlat({ platId, token, onSuccess, onCancel }) {
         body: JSON.stringify({ platId, note, commentaire }),
       });
       const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Erreur lors de l'envoi de l'avis");
+      if (!response.ok) throw new Error(data.error || t("error"));
 
-      toast("Merci pour votre avis !", "success");
+      toast(t("thankYouReview"), "success");
       onSuccess();
     } catch (err) {
       setError(err.message);
@@ -1515,18 +1503,18 @@ function FormulaireAvisPlat({ platId, token, onSuccess, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} style={{ marginTop: "10px" }}>
-      <label className="field-label">Votre note</label>
+      <label className="field-label">{t("yourRating")}</label>
       <EtoilesInput note={note} onChange={setNote} />
-      <label className="field-label">Commentaire (optionnel)</label>
+      <label className="field-label">{t("optionalComment")}</label>
       <input
         type="text"
         value={commentaire}
         onChange={(e) => setCommentaire(e.target.value)}
-        placeholder="Votre avis sur ce plat..."
+        placeholder={t("yourDishReview")}
       />
       <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
         <button type="submit" disabled={loading} style={{ margin: 0 }}>
-          {loading ? "Envoi..." : "Envoyer l'avis"}
+          {loading ? t("sending") : t("sendReview")}
         </button>
         <button
           type="button"
@@ -1534,7 +1522,7 @@ function FormulaireAvisPlat({ platId, token, onSuccess, onCancel }) {
           className="danger"
           style={{ margin: 0 }}
         >
-          Annuler
+          {t("cancel")}
         </button>
       </div>
       {error && <p className="error">{error}</p>}
@@ -1543,6 +1531,7 @@ function FormulaireAvisPlat({ platId, token, onSuccess, onCancel }) {
 }
 
 function CartePlat({ plat, token, onAvisAjoute }) {
+  const { t, lang } = useTranslation();
   const [avisData, setAvisData] = useState(null);
   const [afficherAvis, setAfficherAvis] = useState(false);
   const [afficherFormulaire, setAfficherFormulaire] = useState(false);
@@ -1574,41 +1563,43 @@ function CartePlat({ plat, token, onAvisAjoute }) {
           }}
         />
         <span className={`menu-status ${disponible ? "" : "unavailable"}`}>
-          {disponible ? "✓ Disponible" : "✕ Indisponible"}
+          {disponible ? `✓ ${t("dishAvailable")}` : `✕ ${t("dishUnavailable")}`}
         </span>
       </div>
 
       <div className="menu-body">
-        <div className="menu-cat">{categorieVoilier(plat.categorie)}</div>
+        <div className="menu-cat">
+          {translateCategoryName(categorieVoilier(plat.categorie), lang)}
+        </div>
         <div className="menu-title-row">
           <h3 className="menu-title">{plat.nom}</h3>
         </div>
         <p className="menu-description">
-          {plat.description || "Délicieuse spécialité du restaurant."}
+          {plat.description || t("deliciousSpecialty")}
         </p>
 
         <div className="menu-price-row">
           <span className="menu-price">
             {plat.prix != null
               ? `${Number(plat.prix).toFixed(3)} DT`
-              : "Prix sur demande"}
+              : t("priceOnRequest")}
           </span>
           <span className="menu-review-summary">
-            {moyenne > 0 ? `★ ${moyenne.toFixed(1)}/5` : "☆ Pas encore noté"} ·{" "}
+            {moyenne > 0 ? `★ ${moyenne.toFixed(1)}/5` : `☆ ${t("notRated")}`} ·{" "}
             {nbAvis}
           </span>
         </div>
 
         <div className="menu-actions">
           <button type="button" onClick={() => setAfficherAvis(!afficherAvis)}>
-            {afficherAvis ? "Masquer avis" : "Avis du plat"}
+            {afficherAvis ? t("hideReviews") : t("dishReviews")}
           </button>
           <button
             type="button"
             onClick={() => setAfficherFormulaire(!afficherFormulaire)}
             style={{ background: "#c9a24b" }}
           >
-            {afficherFormulaire ? "Fermer" : "★ Noter"}
+            {afficherFormulaire ? t("close") : `★ ${t("rate")}`}
           </button>
         </div>
 
@@ -1630,7 +1621,7 @@ function CartePlat({ plat, token, onAvisAjoute }) {
         {afficherAvis && (
           <div className="menu-review-box">
             {nbAvis === 0 ? (
-              <p className="empty-state">Aucun avis pour ce plat.</p>
+              <p className="empty-state">{t("noReviews")}</p>
             ) : (
               avisData.avis.map((a) => (
                 <div key={a.id} className="menu-review-item">
@@ -1638,7 +1629,7 @@ function CartePlat({ plat, token, onAvisAjoute }) {
                     {"★".repeat(Number(a.note || 0))}
                     {"☆".repeat(Math.max(0, 5 - Number(a.note || 0)))}
                   </div>
-                  <strong>{a.client || "Client"}</strong> · {a.date || "-"}
+                  <strong>{a.client || t("client")}</strong> · {a.date || "-"}
                   {a.commentaire && <div>{a.commentaire}</div>}
                 </div>
               ))
@@ -1651,6 +1642,7 @@ function CartePlat({ plat, token, onAvisAjoute }) {
 }
 
 function SectionMenu({ token }) {
+  const { t, lang } = useTranslation();
   const [plats, setPlats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -1662,8 +1654,8 @@ function SectionMenu({ token }) {
       .then((res) => res.json())
       .then((data) => setPlats(Array.isArray(data) ? data : []))
       .catch(() => {
-        setError("Impossible de charger le menu");
-        toast("Impossible de charger le menu", "error");
+        setError(t("impossibleLoad"));
+        toast(t("impossibleLoad"), "error");
       })
       .finally(() => setLoading(false));
   };
@@ -1694,11 +1686,11 @@ function SectionMenu({ token }) {
       <div className="menu-hero">
         <div className="menu-hero-row">
           <div>
-            <h1>LE VOILIER</h1>
-            <p>Découvrez notre carte et nos spécialités</p>
+            <h1>{t("appName").toUpperCase()}</h1>
+            <p>{t("discoverMenu")}</p>
             <div className="menu-count">
-              {`${plats.length} ${plats.length > 1 ? "plats" : "plat"} ${
-                plats.length > 1 ? "disponibles" : "disponible"
+              {`${plats.length} ${
+                plats.length > 1 ? t("availableDishes") : t("availableDish")
               }`}
             </div>
           </div>
@@ -1710,7 +1702,7 @@ function SectionMenu({ token }) {
 
         <div className="menu-filters">
           <strong style={{ color: "#6f6254", fontSize: "12px" }}>
-            CATÉGORIES :
+            {t("categories").toUpperCase()} :
           </strong>
           {categories.map((cat) => (
             <button
@@ -1721,7 +1713,7 @@ function SectionMenu({ token }) {
               }`}
               onClick={() => setCategorieActive(cat)}
             >
-              {cat}
+              {cat === "Tous" ? t("catAll") : translateCategoryName(cat, lang)}
             </button>
           ))}
         </div>
@@ -1731,8 +1723,8 @@ function SectionMenu({ token }) {
             <MenuListSkeleton count={4} />
           ) : platsFiltres.length === 0 ? (
             <EmptyState
-              title="Aucun plat"
-              subtitle="Aucun plat dans cette catégorie."
+              title={t("noDishes")}
+              subtitle={t("noDishesCategory")}
             />
           ) : (
             categoriesAffichees.map((categorie) => {
@@ -1743,7 +1735,9 @@ function SectionMenu({ token }) {
 
               return (
                 <section className="menu-section" key={categorie}>
-                  <h2 className="menu-section-title">{categorie}</h2>
+                  <h2 className="menu-section-title">
+                    {translateCategoryName(categorie, lang)}
+                  </h2>
                   <div className="menu-list">
                     {platsCategorie.map((plat) => (
                       <CartePlat
@@ -1751,7 +1745,7 @@ function SectionMenu({ token }) {
                         plat={plat}
                         token={token}
                         onAvisAjoute={() =>
-                          toast("Merci pour votre avis !", "success")
+                          toast(t("thankYouReview"), "success")
                         }
                       />
                     ))}
@@ -1770,6 +1764,7 @@ function SectionMenu({ token }) {
  * 12) ESPACE CLIENT — Réclamations
  * ============================================================ */
 function FormulaireReclamation({ token, reservations, onSuccess }) {
+  const { t } = useTranslation();
   const [reservationId, setReservationId] = useState("");
   const [sujet, setSujet] = useState("");
   const [description, setDescription] = useState("");
@@ -1794,12 +1789,12 @@ function FormulaireReclamation({ token, reservations, onSuccess }) {
         }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Erreur lors de l'envoi");
+      if (!response.ok) throw new Error(data.error || t("complaintError"));
 
       setSujet("");
       setDescription("");
       setReservationId("");
-      toast("Réclamation envoyée avec succès.", "success");
+      toast(t("complaintSent"), "success");
       onSuccess();
     } catch (err) {
       setError(err.message);
@@ -1812,7 +1807,7 @@ function FormulaireReclamation({ token, reservations, onSuccess }) {
   if (reservations.length === 0) {
     return (
       <EmptyState
-        title="Aucune réservation"
+        title={t("noReservations")}
         subtitle="Vous devez avoir une réservation pour déposer une réclamation."
       />
     );
@@ -1820,40 +1815,40 @@ function FormulaireReclamation({ token, reservations, onSuccess }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <label className="field-label">Réservation concernée</label>
+      <label className="field-label">{t("reservation")}</label>
       <select
         value={reservationId}
         onChange={(e) => setReservationId(e.target.value)}
         required
       >
-        <option value="">-- Choisir une réservation --</option>
+        <option value="">-- {t("chooseTable")} --</option>
         {reservations.map((r) => (
           <option key={r.id} value={r.id}>
-            Table {r.table} — {r.date} {r.heure}
+            {t("table")} {r.table} — {r.date} {r.heure}
           </option>
         ))}
       </select>
 
-      <label className="field-label">Sujet</label>
+      <label className="field-label">{t("complaintSubject")}</label>
       <input
         type="text"
         value={sujet}
         onChange={(e) => setSujet(e.target.value)}
-        placeholder="Ex : Retard important"
+        placeholder={t("complaintSubjectPlaceholder")}
         required
       />
 
-      <label className="field-label">Description</label>
+      <label className="field-label">{t("complaintDescription")}</label>
       <input
         type="text"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        placeholder="Décrivez le problème..."
+        placeholder={t("complaintDescriptionPlaceholder")}
         required
       />
 
       <button type="submit" disabled={loading}>
-        {loading ? "Envoi..." : "Envoyer la réclamation"}
+        {loading ? t("sendingComplaint") : t("sendComplaint")}
       </button>
       {error && <p className="error">{error}</p>}
     </form>
@@ -1861,6 +1856,7 @@ function FormulaireReclamation({ token, reservations, onSuccess }) {
 }
 
 function SectionReclamationsClient({ token }) {
+  const { t, lang } = useTranslation();
   const [reclamations, setReclamations] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1874,7 +1870,7 @@ function SectionReclamationsClient({ token }) {
       })
         .then((res) => res.json())
         .then((data) => setReclamations(Array.isArray(data) ? data : []))
-        .catch(() => setError("Impossible de charger vos réclamations")),
+        .catch(() => setError(t("impossibleLoad"))),
       apiFetch(`${API_URL}/reservations/mes-reservations`, {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -1897,12 +1893,12 @@ function SectionReclamationsClient({ token }) {
   return (
     <>
       <div className="main-header">
-        <h1>Réclamations</h1>
-        <p>Signalez un problème lié à une réservation</p>
+        <h1>{t("complaints")}</h1>
+        <p>{t("reportProblem")}</p>
       </div>
 
       <div className="main-card" style={{ marginBottom: "20px" }}>
-        <h3>Nouvelle réclamation</h3>
+        <h3>{t("newComplaint")}</h3>
         {loading ? (
           <ReservationsListSkeleton count={1} />
         ) : (
@@ -1916,13 +1912,13 @@ function SectionReclamationsClient({ token }) {
       </div>
 
       <div className="main-card">
-        <h3>Mes réclamations</h3>
+        <h3>{t("myComplaints")}</h3>
         {loading ? (
           <ReservationsListSkeleton />
         ) : reclamations.length === 0 ? (
           <EmptyState
-            title="Aucune réclamation"
-            subtitle="Vous n'avez envoyé aucune réclamation."
+            title={t("noComplaints")}
+            subtitle={t("noComplaintsText")}
           />
         ) : (
           reclamations.map((r) => (
@@ -1934,7 +1930,7 @@ function SectionReclamationsClient({ token }) {
                     r.statut === "Résolue" ? "confirmee" : "annulee"
                   }`}
                 >
-                  {r.statut}
+                  {translateStatus(r.statut, lang)}
                 </span>
               </div>
               <p>{r.description}</p>
@@ -1951,28 +1947,29 @@ function SectionReclamationsClient({ token }) {
  * 13) ESPACE CLIENT — Paramètres du compte
  * ============================================================ */
 function SectionParametresClient({ payload, onLogout }) {
+  const { t } = useTranslation();
   return (
     <>
       <div className="main-header">
-        <h1>Paramètres</h1>
-        <p>Informations de votre compte</p>
+        <h1>{t("settingsTitle")}</h1>
+        <p>{t("accountInformation")}</p>
       </div>
       <div className="main-card">
         <div className="settings-row">
-          <span>Email</span>
+          <span>{t("accountEmail")}</span>
           <strong>{payload?.username || "-"}</strong>
         </div>
         <div className="settings-row">
-          <span>Rôle</span>
-          <strong>Client</strong>
+          <span>{t("accountRole")}</span>
+          <strong>{t("client")}</strong>
         </div>
         <div className="settings-row">
-          <span>Restaurant</span>
+          <span>{t("accountRestaurant")}</span>
           <strong>Le Voilier — Hôtel El Mehdi</strong>
         </div>
         <div style={{ marginTop: "20px" }}>
           <button className="danger" onClick={onLogout}>
-            Se déconnecter
+            {t("logout")}
           </button>
         </div>
       </div>
@@ -1983,17 +1980,8 @@ function SectionParametresClient({ payload, onLogout }) {
 /* ============================================================
  * 14) I18N — Sélecteur de langue
  * ============================================================ */
-function getLanguage() {
-  return localStorage.getItem("voilier_lang") || "fr";
-}
-
 export function LanguageSwitcher() {
-  const [lang, setLang] = useState(getLanguage());
-  const setLanguage = (l) => {
-    localStorage.setItem("voilier_lang", l);
-    setLang(l);
-    window.location.reload();
-  };
+  const { lang } = useTranslation();
   return (
     <div className="language-switcher" title="Langue / Language / اللغة">
       <span className="language-icon">🌐</span>
@@ -2006,7 +1994,7 @@ export function LanguageSwitcher() {
           key={code}
           type="button"
           className={lang === code ? "active" : ""}
-          onClick={() => setLanguage(code)}
+          onClick={() => setGlobalLanguage(code)}
         >
           {label}
         </button>
@@ -2019,6 +2007,7 @@ export function LanguageSwitcher() {
  * 15) SHELL CLIENT — Sidebar + routing des sections
  * ============================================================ */
 function ReservationPage({ token, onLogout }) {
+  const { t } = useTranslation();
   const [section, setSection] = useState("reserver");
   const [refreshKey, setRefreshKey] = useState(0);
   const [theme, setTheme] = useTheme();
@@ -2026,11 +2015,11 @@ function ReservationPage({ token, onLogout }) {
   const payload = decodeJWT(token);
 
   const navItems = [
-    { key: "reserver", icon: "🪑", label: "Ma table" },
-    { key: "mes", icon: "📋", label: "Mes réservations" },
-    { key: "menu", icon: "🍴", label: "Menu" },
-    { key: "reclamations", icon: "📩", label: "Réclamations" },
-    { key: "parametres", icon: "⚙️", label: "Paramètres" },
+    { key: "reserver", icon: "🪑", label: t("myTable") },
+    { key: "mes", icon: "📋", label: t("myReservations") },
+    { key: "menu", icon: "🍴", label: t("menu") },
+    { key: "reclamations", icon: "📩", label: t("complaints") },
+    { key: "parametres", icon: "⚙️", label: t("settings") },
   ];
 
   return (
@@ -2038,7 +2027,7 @@ function ReservationPage({ token, onLogout }) {
       <div className="sidebar">
         <button className="sidebar-logo" onClick={() => setSection("reserver")}>
           <img src="logo.png" alt="El Mehdi" />
-          <h2>Le Voilier</h2>
+          <h2>{t("appName")}</h2>
         </button>
 
         <div className="sidebar-nav">
@@ -2089,7 +2078,7 @@ function ReservationPage({ token, onLogout }) {
               }}
             >
               <span className="icon">🚪</span>
-              <span>Déconnexion</span>
+              <span>{t("logout")}</span>
             </button>
           </div>
         </div>
@@ -2121,6 +2110,7 @@ function ReservationPage({ token, onLogout }) {
  * 16) PAGE PUBLIQUE — Accueil + QR code d'accès client
  * ============================================================ */
 function QRCodeClient() {
+  const { t } = useTranslation();
   const loginUrl =
     "https://restaurantvoilier-frontend.frajaya629.workers.dev/?page=login";
 
@@ -2129,36 +2119,32 @@ function QRCodeClient() {
       <div className="qr-image-box">
         <QRCodeSVG value={loginUrl} size={200} level="H" includeMargin={true} />
       </div>
-      <small>Scannez avec votre téléphone</small>
+      <small>{t("scanQr")}</small>
     </div>
   );
 }
 
 function PublicRestaurantPage({ onGoToAdminLogin }) {
+  const { t } = useTranslation();
   return (
     <div className="public-home">
       <div className="public-home-header">
-        <h1>LE VOILIER</h1>
-        <p>HÔTEL EL MEHDI</p>
+        <h1>{t("appName").toUpperCase()}</h1>
+        <p>{t("hotelName")}</p>
       </div>
 
       <div className="client-access-card">
         <div className="client-icon">📱</div>
-        <h2>Accès Client</h2>
-        <p>Scannez le QR Code pour accéder rapidement à votre espace client.</p>
+        <h2>{t("clientArea")}</h2>
+        <p>{t("scanQrHint")}</p>
         <QRCodeClient />
-        <div className="qr-only-note">
-          Accès client disponible uniquement via le QR Code
-        </div>
+        <div className="qr-only-note">{t("qrOnlyNote")}</div>
       </div>
 
       <div className="mobile-only-note">
         <div className="client-icon">📱</div>
-        <h2>Accès Client</h2>
-        <p>
-          Le QR Code s'affiche sur l'écran d'accueil du restaurant. Scannez-le
-          avec ce téléphone pour accéder à votre espace.
-        </p>
+        <h2>{t("clientArea")}</h2>
+        <p>{t("mobileQrNote")}</p>
       </div>
 
       <button
@@ -2166,7 +2152,7 @@ function PublicRestaurantPage({ onGoToAdminLogin }) {
         className="admin-access-btn"
         onClick={onGoToAdminLogin}
       >
-        🔐 Accès Administrateur
+        {t("adminAccessBtn")}
       </button>
     </div>
   );
@@ -2176,6 +2162,7 @@ function PublicRestaurantPage({ onGoToAdminLogin }) {
  * 17) APP — Point d'entrée : routing + session
  * ============================================================ */
 function App() {
+  const { t } = useTranslation();
   const [token, setToken] = useState(localStorage.getItem(ACCESS_TOKEN_KEY));
 
   const [view, setView] = useState(() => {
@@ -2190,8 +2177,9 @@ function App() {
   const [registerMessage, setRegisterMessage] = useState("");
 
   useEffect(() => {
-    const saved = localStorage.getItem("voilier_theme") || "light";
-    document.body.setAttribute("data-theme", saved);
+    const savedTheme = localStorage.getItem("voilier_theme") || "light";
+    document.body.setAttribute("data-theme", savedTheme);
+    document.body.classList.toggle("rtl", getLanguage() === "ar");
 
     const checkSession = () => {
       const current = localStorage.getItem(ACCESS_TOKEN_KEY);
@@ -2207,7 +2195,7 @@ function App() {
               "",
               window.location.pathname + "?page=login"
             );
-            toast("Session expirée. Veuillez vous reconnecter.", "error");
+            toast(t("sessionExpired"), "error");
           }
         });
       }
@@ -2223,7 +2211,7 @@ function App() {
         "",
         window.location.pathname + "?page=login"
       );
-      toast("Session expirée. Veuillez vous reconnecter.", "error");
+      toast(t("sessionExpired"), "error");
     };
 
     const onRefreshed = (e) => setToken(e.detail);
@@ -2265,9 +2253,7 @@ function App() {
   };
 
   const handleRegisterSuccess = (email) => {
-    setRegisterMessage(
-      `Compte créé pour ${email} ! Vous pouvez vous connecter.`
-    );
+    setRegisterMessage(`${t("accountCreated")} (${email})`);
     goToPage("login");
   };
 
