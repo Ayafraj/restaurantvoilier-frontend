@@ -418,17 +418,17 @@ function SectionBusinessHub({ token }) {
         <div className="feature-list">
           <div className="feature-item">
             <strong>👑 {t("vip")}</strong>
-            {vip} client(s)
+            {vip} {t("clientsUnit")}
             <div className="bi-muted">{t("vipDescription")}</div>
           </div>
           <div className="feature-item">
             <strong>💚 {t("regularCustomers")}</strong>
-            {regular} client(s)
+            {regular} {t("clientsUnit")}
             <div className="bi-muted">{t("regularDescription")}</div>
           </div>
           <div className="feature-item">
             <strong>🆕 {t("newCustomers")}</strong>
-            {newClients} client(s)
+            {newClients} {t("clientsUnit")}
             <div className="bi-muted">{t("newDescription")}</div>
           </div>
           <div className="feature-item">

@@ -268,6 +268,7 @@ export const translations = {
 
     people: "personnes",
     person: "personne",
+    clientsUnit: "client(s)",
 
     refresh: "Actualiser",
     reservationsByStatus: "Réservations par statut",
@@ -602,7 +603,7 @@ export const translations = {
 
     people: "أشخاص",
     person: "شخص",
-
+    clientsUnit: "عميل / عملاء",
     refresh: "تحديث",
     reservationsByStatus: "الحجوزات حسب الحالة",
     resolved: "تم الحل",
