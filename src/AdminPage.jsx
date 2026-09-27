@@ -917,7 +917,7 @@ function SectionReclamations({ token, reclamations, onChange }) {
                         padding: "7px 14px",
                       }}
                     >
-                      Prendre en charge
+                      {t("statusInProgress")}
                     </button>
                   )}
                   <button
@@ -930,7 +930,7 @@ function SectionReclamations({ token, reclamations, onChange }) {
                       background: "#4f8f86",
                     }}
                   >
-                    Marquer résolue
+                    {t("resolved")}
                   </button>
                 </div>
               )}
@@ -1616,7 +1616,7 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
         >
           {categories.map((cat) => (
             <option key={cat} value={cat}>
-              {cat}
+              {translateCategoryName(categorieVoilier(cat), lang)}
             </option>
           ))}
         </select>
@@ -1782,7 +1782,7 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
 }
 
 function SectionGererMenu({ token }) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [plats, setPlats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPlatForm, setShowPlatForm] = useState(false);
@@ -1998,7 +1998,7 @@ function SectionGererMenu({ token }) {
                 <option value="">-- {t("category")} --</option>
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
-                    {cat}
+                    {translateCategoryName(categorieVoilier(cat), lang)}
                   </option>
                 ))}
               </select>
@@ -2117,6 +2117,12 @@ function SectionGererMenu({ token }) {
               <>
                 {nomsCategories.map((cat) => {
                   const estOuverte = categorieOuverte === cat;
+                  // Le libellé affiché est toujours traduit selon la langue active,
+                  // même si la valeur stockée en base (cat) reste en français.
+                  const libelleCategorie =
+                    cat === "Sans catégorie"
+                      ? t("noDishesCategory") || cat
+                      : translateCategoryName(categorieVoilier(cat), lang);
                   return (
                     <div
                       key={cat}
@@ -2152,7 +2158,7 @@ function SectionGererMenu({ token }) {
                         }}
                       >
                         <span>
-                          {cat}{" "}
+                          {libelleCategorie}{" "}
                           <span
                             style={{
                               fontWeight: 500,
