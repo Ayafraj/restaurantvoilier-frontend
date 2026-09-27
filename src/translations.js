@@ -50,6 +50,8 @@ export const translations = {
     hidePassword: "Masquer le mot de passe",
 
     login: "Connexion",
+    loginButton: "Se connecter",
+    backHome: "Retour à l'accueil",
     logout: "Déconnexion",
     email: "Email",
     password: "Mot de passe",
@@ -396,6 +398,8 @@ export const translations = {
     hidePassword: "إخفاء كلمة المرور",
 
     login: "تسجيل الدخول",
+    loginButton: "تسجيل الدخول",
+    backHome: "العودة إلى الرئيسية",
     logout: "تسجيل الخروج",
     email: "البريد الإلكتروني",
     password: "كلمة المرور",
