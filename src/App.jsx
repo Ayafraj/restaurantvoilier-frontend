@@ -315,6 +315,7 @@ function ConfirmModal() {
  * ============================================================ */
 
 function PasswordInput({ value, onChange, placeholder, required }) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   return (
     <div className="password-field">
@@ -329,10 +330,8 @@ function PasswordInput({ value, onChange, placeholder, required }) {
         type="button"
         className="password-toggle"
         onClick={() => setVisible((v) => !v)}
-        aria-label={
-          visible ? "Masquer le mot de passe" : "Afficher le mot de passe"
-        }
-        title={visible ? "Masquer" : "Afficher"}
+        aria-label={visible ? t("hidePassword") : t("showPassword")}
+        title={visible ? t("hidePassword") : t("showPassword")}
       >
         {visible ? "🙈" : "👁️"}
       </button>
@@ -2040,6 +2039,7 @@ function ReservationPage({ token, onLogout }) {
               key={item.key}
               className={section === item.key ? "active" : ""}
               data-tooltip={item.label}
+              aria-label={item.label}
               onClick={() => setSection(item.key)}
             >
               <span className="icon">{item.icon}</span>
@@ -2053,7 +2053,7 @@ function ReservationPage({ token, onLogout }) {
             type="button"
             className="more-trigger"
             onClick={() => setShowMore((v) => !v)}
-            aria-label="Plus d'options"
+            aria-label={t("moreOptions")}
           >
             <span className="icon">⋯</span>
           </button>
@@ -2068,7 +2068,8 @@ function ReservationPage({ token, onLogout }) {
             <button
               className="theme-toggle"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              title={theme === "dark" ? "Mode clair" : "Mode sombre"}
+              title={theme === "dark" ? t("lightMode") : t("darkMode")}
+              aria-label={theme === "dark" ? t("lightMode") : t("darkMode")}
             >
               <span className="icon">{theme === "dark" ? "☀️" : "🌙"}</span>
               <span className="footer-label">
