@@ -13,6 +13,13 @@ export const translations = {
 
   fr: {
     appName: "Le Voilier — Hôtel El Mehdi",
+    hotelName: "Hôtel El Mehdi",
+    clientArea: "Espace Client",
+    scanQrHint: "Scannez le QR code pour accéder à votre espace",
+    scanQr: "Scanner le QR code",
+    qrOnlyNote: "Accès réservé via QR code uniquement",
+    adminAccessBtn: "Accès administrateur",
+
     welcome: "Bienvenue",
     home: "Accueil",
     dashboard: "Tableau de bord",
@@ -352,6 +359,13 @@ export const translations = {
 
   ar: {
     appName: "لو فوايلييه — فندق المهدي",
+    hotelName: "فندق المهدي",
+    clientArea: "فضاء العميل",
+    scanQrHint: "امسح رمز QR للوصول إلى فضائك",
+    scanQr: "مسح رمز QR",
+    qrOnlyNote: "الوصول متاح فقط عبر رمز QR",
+    adminAccessBtn: "الدخول كمسؤول",
+
     welcome: "مرحباً",
     home: "الرئيسية",
     dashboard: "لوحة التحكم",
@@ -604,6 +618,7 @@ export const translations = {
     people: "أشخاص",
     person: "شخص",
     clientsUnit: "عميل / عملاء",
+
     refresh: "تحديث",
     reservationsByStatus: "الحجوزات حسب الحالة",
     resolved: "تم الحل",
