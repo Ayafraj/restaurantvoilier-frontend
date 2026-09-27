@@ -95,6 +95,7 @@ export const translations = {
 
     customers: "Clients",
     customer: "Client",
+    clients: "Clients",
     totalCustomers: "Total des clients",
     totalReservations: "Total des réservations",
     totalReviews: "Total des avis",
@@ -432,6 +433,7 @@ export const translations = {
 
     customers: "العملاء",
     customer: "العميل",
+    clients: "العملاء",
     totalCustomers: "إجمالي العملاء",
     totalReservations: "إجمالي الحجوزات",
     totalReviews: "إجمالي التقييمات",
