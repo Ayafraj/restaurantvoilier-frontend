@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+=import React, { useState, useEffect } from "react";
 import "./style.css";
 import AdminPage from "./AdminPage";
 import { QRCodeSVG } from "qrcode.react";
@@ -1579,9 +1579,7 @@ function CartePlat({ plat, token, onAvisAjoute }) {
           <h3 className="menu-title">{translateDishName(plat.nom, lang)}</h3>
         </div>
         <p className="menu-description">
-          {lang === "ar"
-            ? translateDishDescription(plat.nom, plat.description)
-            : plat.description || t("deliciousSpecialty")}
+          {plat.description || t("deliciousSpecialty")}
         </p>
 
         <div className="menu-price-row">
@@ -1971,7 +1969,7 @@ function SectionParametresClient({ payload, onLogout }) {
         </div>
         <div className="settings-row">
           <span>{t("accountRestaurant")}</span>
-          <strong>Le Voilier — Hôtel El Mehdi</strong>
+          <strong>{t("appName")}</strong>
         </div>
         <div style={{ marginTop: "20px" }}>
           <button className="danger" onClick={onLogout}>
@@ -2075,7 +2073,7 @@ function ReservationPage({ token, onLogout }) {
             >
               <span className="icon">{theme === "dark" ? "☀️" : "🌙"}</span>
               <span className="footer-label">
-                {theme === "dark" ? "Mode clair" : "Mode sombre"}
+                {theme === "dark" ? t("lightMode") : t("darkMode")}
               </span>
             </button>
             <button
