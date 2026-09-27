@@ -7,7 +7,11 @@ import {
   setLanguage as setGlobalLanguage,
   getLanguage,
 } from "./useTranslation";
-import { translateStatus, translateCategoryName } from "./translations";
+import {
+  translateStatus,
+  translateCategoryName,
+  translateDishName,
+} from "./translations";
 
 /* ============================================================
  * 1) CONFIGURATION — URLs de production (backend Symfony / Railway)
@@ -1572,7 +1576,7 @@ function CartePlat({ plat, token, onAvisAjoute }) {
           {translateCategoryName(categorieVoilier(plat.categorie), lang)}
         </div>
         <div className="menu-title-row">
-          <h3 className="menu-title">{plat.nom}</h3>
+          <h3 className="menu-title">{translateDishName(plat.nom, lang)}</h3>
         </div>
         <p className="menu-description">
           {plat.description || t("deliciousSpecialty")}

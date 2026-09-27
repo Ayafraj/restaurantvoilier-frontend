@@ -195,6 +195,8 @@ export const translations = {
 
     // =========================
     // Catégories du Voilier
+    // (les clés ci-dessous DOIVENT correspondre exactement aux chaînes
+    // retournées par categorieVoilier() / CATEGORIES_MENU_VOILIER dans App.js)
     // =========================
     catAll: "Tous",
     catSalads: "LES SALADES DU VOILIER",
@@ -204,7 +206,7 @@ export const translations = {
     catPizzas: "LES PIZZAS",
     catPasta: "LES PÂTES",
     catDesserts: "LES DESSERTS",
-    catMineralWater: "EAUX MINÉRALES",
+    catMineralWater: "EAU MINÉRALE",
     catSyrups: "SIROPS",
     catSodas: "SODAS",
     catEnergyDrinks: "BOISSONS ÉNERGÉTIQUES",
@@ -274,6 +276,9 @@ export const translations = {
     complaintError: "Erreur lors de l'envoi de la réclamation.",
     resolved: "Résolue",
     unresolved: "Non résolue",
+    // statuts de traitement interne (admin) des réclamations
+    statusNew: "Nouvelle",
+    statusInProgress: "En cours",
 
     // =========================
     // Paramètres / Profil
@@ -674,6 +679,8 @@ export const translations = {
     complaintError: "Error while sending the complaint.",
     resolved: "Resolved",
     unresolved: "Unresolved",
+    statusNew: "New",
+    statusInProgress: "In progress",
 
     profileTitle: "Profile",
     settingsTitle: "Settings",
@@ -1046,6 +1053,8 @@ export const translations = {
     complaintError: "حدث خطأ أثناء إرسال الشكوى.",
     resolved: "تم الحل",
     unresolved: "لم يتم الحل",
+    statusNew: "جديدة",
+    statusInProgress: "قيد المعالجة",
 
     profileTitle: "الملف الشخصي",
     settingsTitle: "الإعدادات",
@@ -1221,7 +1230,13 @@ export const dishTranslations = {
 /* ============================================================
  * Traduction des catégories
  * IMPORTANT :
- * La valeur originale reste utilisée pour les filtres/API.
+ * Les clés ci-dessous DOIVENT être identiques (mot pour mot, accents
+ * compris) aux chaînes retournées par categorieVoilier() et à celles
+ * du tableau CATEGORIES_MENU_VOILIER dans App.js.
+ * Un décalage ici (ex: singulier/pluriel, accent manquant) fait que
+ * translateCategoryName() ne trouve pas de correspondance et renvoie
+ * la chaîne française brute même en EN/AR — c'est ce qui causait
+ * le bug de traduction des catégories.
  * ============================================================ */
 
 export const categoryTranslations = {
@@ -1229,13 +1244,13 @@ export const categoryTranslations = {
 
   "LES SALADES DU VOILIER": "catSalads",
   "LES ENTRÉES CHAUDES": "catHotStarters",
-  "LES SPÉCIALITÉS DU VOILIER": "catSpecialties",
+  "LES SPÉCIALITÉS EN PLAT": "catSpecialties",
   "LES PLATS": "catDishes",
   "LES PIZZAS": "catPizzas",
   "LES PÂTES": "catPasta",
   "LES DESSERTS": "catDesserts",
-  "EAUX MINÉRALES": "catMineralWater",
-  "EAU MINERALES": "catMineralWater",
+  "EAU MINÉRALE": "catMineralWater",
+  "EAU MINERALE": "catMineralWater",
   SIROPS: "catSyrups",
   SODAS: "catSodas",
   "BOISSONS ÉNERGÉTIQUES": "catEnergyDrinks",
@@ -1268,6 +1283,12 @@ export const statusTranslations = {
 
   Résolue: "resolved",
   Resolue: "resolved",
+
+  // Statuts internes des réclamations (admin) — manquaient avant,
+  // ce qui faisait que "Nouvelle" / "En cours" restaient en français
+  // même en EN/AR.
+  Nouvelle: "statusNew",
+  "En cours": "statusInProgress",
 };
 
 /* ============================================================

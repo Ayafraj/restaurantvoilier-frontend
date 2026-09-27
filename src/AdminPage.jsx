@@ -23,7 +23,11 @@ import {
   imagePlatCategorie,
 } from "./App";
 import { useTranslation } from "./useTranslation";
-import { translateStatus, translateCategoryName } from "./translations";
+import {
+  translateStatus,
+  translateCategoryName,
+  translateDishName,
+} from "./translations";
 
 /* ================== SUGGESTIONS D'IMAGES ================== */
 const IMAGES_PLATS = [
@@ -1534,9 +1538,10 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
   const handleSupprimer = async () => {
     const ok = await askConfirm({
       title: t("deleteDish"),
-      message: `${t("confirmDelete")} « ${plat.nom} ». ${t(
-        "deleteIrreversible"
-      )}`,
+      message: `${t("confirmDelete")} « ${translateDishName(
+        plat.nom,
+        lang
+      )} ». ${t("deleteIrreversible")}`,
       confirmLabel: t("delete"),
       tone: "danger",
     });
@@ -1551,7 +1556,12 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || t("error"));
-      toast(`« ${plat.nom} » ${t("delete").toLowerCase()}.`, "success");
+      toast(
+        `« ${translateDishName(plat.nom, lang)} » ${t(
+          "delete"
+        ).toLowerCase()}.`,
+        "success"
+      );
       onChange();
     } catch (err) {
       setError(err.message);
@@ -1664,7 +1674,9 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
         />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="row">
-            <strong style={{ fontSize: "15px" }}>{plat.nom}</strong>
+            <strong style={{ fontSize: "15px" }}>
+              {translateDishName(plat.nom, lang)}
+            </strong>
             {plat.prix != null && (
               <span
                 className="badge-statut confirmee"
