@@ -2709,11 +2709,20 @@ button:disabled:not(.page-button)::before {
     width: 250px;
     min-width: 250px;
     height: 100vh;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    z-index: 500;
     padding: 22px 14px;
     gap: 0;
     overflow-y: auto;
+  }
+
+  /* Le sidebar est fixed (retiré du flux), donc on redonne sa place au
+     contenu principal pour qu'il ne passe plus dessous. */
+  .admin-shell .main-content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
   }
 
   .admin-shell .sidebar-logo {
@@ -2727,12 +2736,11 @@ button:disabled:not(.page-button)::before {
 
   .admin-shell .sidebar-nav {
     flex-direction: column;
+    flex: 1;
     overflow-x: visible;
     overflow-y: auto;
     gap: 2px;
     width: 100%;
-    /* on laisse de la place en bas pour ne pas passer sous le footer */
-    padding-bottom: 190px;
   }
 
   .admin-shell .sidebar-nav button {
@@ -2750,16 +2758,16 @@ button:disabled:not(.page-button)::before {
     border-left-color: var(--brass);
   }
 
-  /* --- FIX FORT : le footer est en position absolute, garanti collé en bas
-       de .sidebar (qui est sticky, donc sert de containing block), quelle
-       que soit la hauteur du menu au-dessus. --- */
+  /* --- Le sidebar est maintenant "position: fixed" et fait exactement
+       100vh. La nav a "flex: 1" (prend tout l'espace restant), donc le
+       footer se retrouve naturellement collé en bas de cette boîte de
+       100vh — et comme la boîte entière est fixed, il reste TOUJOURS
+       visible à l'écran, quelle que soit la longueur du contenu à droite. --- */
   .admin-shell .sidebar-footer-wrap {
-    position: absolute;
-    left: 14px;
-    right: 14px;
-    bottom: 18px;
-    margin: 0;
-    width: auto;
+    margin-left: 0;
+    margin-top: auto;
+    width: 100%;
+    flex-shrink: 0;
   }
 
   .admin-shell .sidebar-footer {
