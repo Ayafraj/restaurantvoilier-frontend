@@ -2727,11 +2727,12 @@ button:disabled:not(.page-button)::before {
 
   .admin-shell .sidebar-nav {
     flex-direction: column;
-    flex: 1;
     overflow-x: visible;
     overflow-y: auto;
     gap: 2px;
     width: 100%;
+    /* on laisse de la place en bas pour ne pas passer sous le footer */
+    padding-bottom: 190px;
   }
 
   .admin-shell .sidebar-nav button {
@@ -2749,20 +2750,43 @@ button:disabled:not(.page-button)::before {
     border-left-color: var(--brass);
   }
 
+  /* --- FIX FORT : le footer est en position absolute, garanti collé en bas
+       de .sidebar (qui est sticky, donc sert de containing block), quelle
+       que soit la hauteur du menu au-dessus. --- */
   .admin-shell .sidebar-footer-wrap {
-    margin-left: 0;
-    width: 100%;
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 18px;
+    margin: 0;
+    width: auto;
   }
 
   .admin-shell .sidebar-footer {
     flex-direction: column;
     align-items: stretch;
     width: 100%;
-    padding: 14px 0 0;
-    margin-top: 14px;
+    padding: 16px 0 0;
+    margin-top: 0;
     border-left: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
     gap: 8px;
+  }
+
+  /* Divider dégradé doré au lieu d'une simple ligne plate */
+  .admin-shell .sidebar-footer::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      rgba(201, 162, 75, 0) 0%,
+      rgba(201, 162, 75, 0.35) 50%,
+      rgba(201, 162, 75, 0) 100%
+    );
   }
 
   .admin-shell .sidebar-footer .language-switcher {
@@ -2774,10 +2798,32 @@ button:disabled:not(.page-button)::before {
   .admin-shell .sidebar-footer > button:last-child {
     width: 100% !important;
     justify-content: flex-start;
-    gap: 8px;
+    gap: 10px;
+    padding: 10px 12px !important;
+    border-radius: 9px !important;
+    font-size: 13px !important;
+    font-weight: 600;
+    transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
   }
 
   .admin-shell .theme-toggle .footer-label {
+    display: inline;
+  }
+
+  /* Bouton Déconnexion : accent coral discret, plus visible au survol */
+  .admin-shell .sidebar-footer > button:last-child {
+    background: rgba(193, 88, 76, 0.1) !important;
+    color: #e8a89f !important;
+    border: 1px solid rgba(193, 88, 76, 0.22) !important;
+  }
+
+  .admin-shell .sidebar-footer > button:last-child:hover {
+    background: rgba(193, 88, 76, 0.22) !important;
+    box-shadow: 0 8px 18px -10px rgba(193, 88, 76, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .admin-shell .sidebar-footer > button:last-child span:not(.icon) {
     display: inline;
   }
 
