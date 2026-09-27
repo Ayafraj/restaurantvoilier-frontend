@@ -488,6 +488,10 @@ export function BarChartStat({ data }) {
 export function DonutChartStat({ data, size = 148, thickness = 24 }) {
   const total = data.reduce((sum, d) => sum + d.value, 0) || 1;
 
+  const radius = (size - thickness) / 2;
+  const circumference = 2 * Math.PI * radius;
+
+  let cumulative = 0;
   return (
     <div
       style={{
