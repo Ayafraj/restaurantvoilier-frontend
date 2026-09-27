@@ -667,6 +667,127 @@ export function translateCategoryName(name, lang = getLanguage()) {
 
   return categories[lang]?.[normalized] || name;
 }
+// ======================================================
+// DISH TRANSLATION
+// ======================================================
+
+export function translateDishName(name, lang = getLanguage()) {
+  if (!name) return "";
+
+  const normalized = String(name).trim().toLowerCase();
+
+  const dishes = {
+    fr: {
+      "salade mechouia": "Salade Mechouia",
+      "assiette elmehdi": "Assiette Elmehdi",
+      "salade aux fruits de mer": "Salade aux fruits de mer",
+      "salade tunisienne": "Salade Tunisienne",
+      "salade tomate": "Salade Tomate",
+      "salade cezar": "Salade Cezar",
+      "salade césar": "Salade César",
+
+      "brick au thon": "Brick au thon",
+      "brick aux crevettes": "Brick aux crevettes",
+      "crêpe fourrée": "Crêpe fourrée",
+      "crepe fourree": "Crêpe fourrée",
+      "ojja merguez aux chevrettes": "Ojja merguez aux chevrettes",
+      "calamar dore": "Calamar doré",
+      "calamar doré": "Calamar doré",
+      "chevrettes panées": "Chevrettes panées",
+      "chevrettes panees": "Chevrettes panées",
+      "chevrettes sautées": "Chevrettes sautées",
+      "chevrettes sautees": "Chevrettes sautées",
+      "seiche grillée": "Seiche grillée",
+      "seiche grillee": "Seiche grillée",
+      "calamars grillés": "Calamars grillés",
+      "calamars grilles": "Calamars grillés",
+
+      "eau naturelle": "Eau naturelle",
+      "eau gazeuse": "Eau gazeuse",
+      menthe: "Menthe",
+      granadine: "Grenadine",
+      coca: "Coca",
+      boga: "Boga",
+      fanta: "Fanta",
+      schweppes: "Schweppes",
+      "red bull": "Red Bull",
+    },
+
+    en: {
+      "salade mechouia": "Mechouia Salad",
+      "assiette elmehdi": "Elmehdi Plate",
+      "salade aux fruits de mer": "Seafood Salad",
+      "salade tunisienne": "Tunisian Salad",
+      "salade tomate": "Tomato Salad",
+      "salade cezar": "Caesar Salad",
+      "salade césar": "Caesar Salad",
+
+      "brick au thon": "Tuna Brick",
+      "brick aux crevettes": "Shrimp Brick",
+      "crêpe fourrée": "Stuffed Crepe",
+      "crepe fourree": "Stuffed Crepe",
+      "ojja merguez aux chevrettes": "Merguez Ojja with Shrimp",
+      "calamar dore": "Fried Calamari",
+      "calamar doré": "Fried Calamari",
+      "chevrettes panées": "Breaded Shrimp",
+      "chevrettes panees": "Breaded Shrimp",
+      "chevrettes sautées": "Sautéed Shrimp",
+      "chevrettes sautees": "Sautéed Shrimp",
+      "seiche grillée": "Grilled Cuttlefish",
+      "seiche grillee": "Grilled Cuttlefish",
+      "calamars grillés": "Grilled Calamari",
+      "calamars grilles": "Grilled Calamari",
+
+      "eau naturelle": "Still Water",
+      "eau gazeuse": "Sparkling Water",
+      menthe: "Mint",
+      granadine: "Grenadine",
+      coca: "Coca-Cola",
+      boga: "Boga",
+      fanta: "Fanta",
+      schweppes: "Schweppes",
+      "red bull": "Red Bull",
+    },
+
+    ar: {
+      "salade mechouia": "سلطة مشوية",
+      "assiette elmehdi": "طبق المهدي",
+      "salade aux fruits de mer": "سلطة فواكه البحر",
+      "salade tunisienne": "سلطة تونسية",
+      "salade tomate": "سلطة الطماطم",
+      "salade cezar": "سلطة سيزار",
+      "salade césar": "سلطة سيزار",
+
+      "brick au thon": "بريك بالتن",
+      "brick aux crevettes": "بريك بالقمرون",
+      "crêpe fourrée": "كريب محشو",
+      "crepe fourree": "كريب محشو",
+      "ojja merguez aux chevrettes": "عجة مرڨاز بالقمرون",
+      "calamar dore": "كالامار مقلي",
+      "calamar doré": "كالامار مقلي",
+      "chevrettes panées": "قمرون مقلي بالبقسماط",
+      "chevrettes panees": "قمرون مقلي بالبقسماط",
+      "chevrettes sautées": "قمرون سوتيه",
+      "chevrettes sautees": "قمرون سوتيه",
+      "seiche grillée": "سيبيا مشوية",
+      "seiche grillee": "سيبيا مشوية",
+      "calamars grillés": "كالامار مشوي",
+      "calamars grilles": "كالامار مشوي",
+
+      "eau naturelle": "مياه معدنية طبيعية",
+      "eau gazeuse": "مياه غازية",
+      menthe: "نعناع",
+      granadine: "غرينادين",
+      coca: "كوكاكولا",
+      boga: "بوجا",
+      fanta: "فانتا",
+      schweppes: "شويبس",
+      "red bull": "ريد بول",
+    },
+  };
+
+  return dishes[lang]?.[normalized] || name;
+}
 
 // ======================================================
 // STATUS TRANSLATION
