@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { translations } from "./translations";
 
 const LANGUAGE_KEY = "voilier_lang";
+
 const LANGUAGE_EVENT = "voilier-language-changed";
 
-const SUPPORTED_LANGUAGES = ["fr", "en", "ar"];
+const SUPPORTED_LANGUAGES = ["fr", "ar"];
 
 // ======================================================
 // GET CURRENT LANGUAGE
