@@ -486,10 +486,9 @@ export function BarChartStat({ data }) {
 }
 
 export function DonutChartStat({ data, size = 148, thickness = 24 }) {
+  const { t } = useTranslation();
+
   const total = data.reduce((sum, d) => sum + d.value, 0) || 1;
-  const radius = (size - thickness) / 2;
-  const circumference = 2 * Math.PI * radius;
-  let cumulative = 0;
 
   return (
     <div
@@ -587,7 +586,7 @@ export function DonutChartStat({ data, size = 148, thickness = 24 }) {
                 display: "inline-block",
               }}
             />
-            <span>{d.label}</span>
+            <span>{d.label === "Clients" ? t("customers") : d.label}</span>
             <strong
               style={{
                 color: "var(--navy-950)",
@@ -1578,7 +1577,9 @@ function CartePlat({ plat, token, onAvisAjoute }) {
           <h3 className="menu-title">{translateDishName(plat.nom, lang)}</h3>
         </div>
         <p className="menu-description">
-          {plat.description || t("deliciousSpecialty")}
+          {lang === "ar"
+            ? translateDishDescription(plat.nom, plat.description)
+            : plat.description || t("deliciousSpecialty")}
         </p>
 
         <div className="menu-price-row">
