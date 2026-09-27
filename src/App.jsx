@@ -584,7 +584,7 @@ export function DonutChartStat({ data, size = 148, thickness = 24 }) {
                 display: "inline-block",
               }}
             />
-            <span>{d.label === "Clients" ? t("customers") : d.label}</span>
+            <span>{d.label}</span>
             <strong
               style={{
                 color: "var(--navy-950)",
