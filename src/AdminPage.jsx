@@ -268,7 +268,7 @@ function SectionBusinessHub({ token }) {
     <>
       <div className="main-header">
         <h1>{t("businessEngagement")}</h1>
-        <p>Fidélisation, promotions, segmentation et pilotage commercial</p>
+        <p>{t("businessEngagementSubtitle")}</p>
       </div>
       <div className="bi-grid">
         <div className="bi-card">
@@ -501,7 +501,7 @@ function SectionToutesReservations({ token }) {
     <>
       <div className="main-header">
         <h1>{t("allReservationsNav")}</h1>
-        <p>Vue globale de toutes les réservations clients</p>
+        <p>{t("allReservationsSubtitle")}</p>
       </div>
       <div className="main-card">
         {error && <p className="error">{error}</p>}
@@ -880,7 +880,7 @@ function SectionReclamations({ token, reclamations, onChange }) {
     <>
       <div className="main-header">
         <h1>{t("complaints")}</h1>
-        <p>Suivi et traitement des réclamations clients</p>
+        <p>{t("complaintsSubtitleAdmin")}</p>
       </div>
       <div className="main-card">
         {reclamations.length === 0 ? (
@@ -1284,7 +1284,7 @@ function SectionGererTables({ token }) {
     <>
       <div className="main-header">
         <h1>{t("manageTablesNav")}</h1>
-        <p>Ajout, disponibilité et suppression des tables</p>
+        <p>{t("manageTablesSubtitle")}</p>
       </div>
 
       <div className="main-card" style={{ marginBottom: "20px" }}>
@@ -1730,7 +1730,7 @@ function CartePlatAdmin({ plat, token, categories, onChange }) {
               fontSize: "13px",
             }}
           >
-            {plat.description || "Aucune description."}
+            {plat.description || t("noDescriptionAvailable")}
           </p>
           <div className="settings-row" style={{ padding: "6px 0" }}>
             <span>{t("availableQuantity")}</span>
@@ -1911,7 +1911,7 @@ function SectionGererMenu({ token }) {
 
       <div className="main-header">
         <h1>{t("manageMenuNav")}</h1>
-        <p>Ajoutez les plats et organisez votre menu par catégories</p>
+        <p>{t("manageMenuSubtitle")}</p>
       </div>
 
       <div className="main-card" style={{ marginBottom: "20px" }}>
@@ -2279,7 +2279,7 @@ function SectionGererComptes({ token }) {
     <>
       <div className="main-header">
         <h1>{t("clientAccounts")}</h1>
-        <p>Liste des clients et gestion de leur accès</p>
+        <p>{t("clientAccountsSubtitle")}</p>
       </div>
       <div className="main-card">
         {error && <p className="error">{error}</p>}
@@ -2299,7 +2299,7 @@ function SectionGererComptes({ token }) {
         {loading ? (
           <ReservationsListSkeleton />
         ) : clients.length === 0 ? (
-          <EmptyState title="Aucun client" />
+          <EmptyState title={t("noClients")} />
         ) : (
           visibleClients.map((c) => (
             <div key={c.id} className="reservation-item">
@@ -2312,11 +2312,11 @@ function SectionGererComptes({ token }) {
                     c.actif ? "confirmee" : "annulee"
                   }`}
                 >
-                  {c.actif ? "Actif" : "Désactivé"}
+                  {c.actif ? t("statusActive") : t("statusInactive")}
                 </span>
               </div>
               <p>
-                {c.email} · {c.telephone || "Pas de téléphone"}
+                {c.email} · {c.telephone || t("noPhone")}
               </p>
               <button
                 onClick={() => handleToggle(c.id, c.actif)}
@@ -2328,7 +2328,7 @@ function SectionGererComptes({ token }) {
                   padding: "7px 14px",
                 }}
               >
-                {c.actif ? "Désactiver" : "Activer"}
+                {c.actif ? t("deactivate") : t("activate")}
               </button>
             </div>
           ))
@@ -2340,7 +2340,7 @@ function SectionGererComptes({ token }) {
 
 /* ================== AVIS DES PLATS (ADMIN) ================== */
 function SectionAvisPlats({ token }) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [avisList, setAvisList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -2373,7 +2373,7 @@ function SectionAvisPlats({ token }) {
     <>
       <div className="main-header">
         <h1>{t("dishReviewsNav")}</h1>
-        <p>Notes et commentaires laissés par les clients sur les plats</p>
+        <p>{t("dishReviewsSubtitle")}</p>
       </div>
       <div className="main-card">
         {error && <p className="error">{error}</p>}
@@ -2412,7 +2412,9 @@ function SectionAvisPlats({ token }) {
                 <strong>
                   {"⭐".repeat(a.note || 0)} ({a.note ?? "-"}/5)
                 </strong>
-                <span className="badge-statut confirmee">Plat : {a.plat}</span>
+                <span className="badge-statut confirmee">
+                  {t("dish")} : {translateDishName(a.plat, lang)}
+                </span>
               </div>
               {a.commentaire && <p>{a.commentaire}</p>}
               <p>
@@ -2436,7 +2438,7 @@ function SectionParametresAdmin({ payload, onLogout }) {
     <>
       <div className="main-header">
         <h1>{t("settingsTitle")}</h1>
-        <p>Informations du compte administrateur</p>
+        <p>{t("adminSettingsSubtitle")}</p>
       </div>
       <div className="main-card">
         <div className="settings-row">

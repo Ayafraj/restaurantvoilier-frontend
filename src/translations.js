@@ -51,6 +51,28 @@ export const translations = {
     no: "Non",
 
     // =========================
+    // Sous-titres des sections (admin)
+    // =========================
+    businessEngagementSubtitle:
+      "Fidélisation, promotions, segmentation et pilotage commercial",
+    allReservationsSubtitle: "Vue globale de toutes les réservations clients",
+    manageTablesSubtitle: "Ajout, disponibilité et suppression des tables",
+    clientAccountsSubtitle: "Liste des clients et gestion de leur accès",
+    manageMenuSubtitle:
+      "Ajoutez les plats et organisez votre menu par catégories",
+    dishReviewsSubtitle:
+      "Notes et commentaires laissés par les clients sur les plats",
+    complaintsSubtitleAdmin: "Suivi et traitement des réclamations clients",
+    adminSettingsSubtitle: "Informations du compte administrateur",
+    noClients: "Aucun client",
+    noPhone: "Pas de téléphone",
+    statusActive: "Actif",
+    statusInactive: "Désactivé",
+    activate: "Activer",
+    deactivate: "Désactiver",
+    noDescriptionAvailable: "Aucune description.",
+
+    // =========================
     // Langues
     // =========================
     french: "Français",
@@ -195,8 +217,6 @@ export const translations = {
 
     // =========================
     // Catégories du Voilier
-    // (les clés ci-dessous DOIVENT correspondre exactement aux chaînes
-    // retournées par categorieVoilier() / CATEGORIES_MENU_VOILIER dans App.js)
     // =========================
     catAll: "Tous",
     catSalads: "LES SALADES DU VOILIER",
@@ -233,6 +253,39 @@ export const translations = {
     dishCrevettesSautees: "Crevettes sautées",
     dishSeicheGrillee: "Seiche grillée",
     dishCalamarsGrilles: "Calamars grillés",
+
+    // =========================
+    // Plats - Plats principaux / Spécialités
+    // =========================
+    dishFiletPoivreChampignons: "Filet au poivre et aux champignons",
+    dishGrilladeMixte: "Grillade mixte",
+    dishCrevettesRoyales: "Crevettes royales grillées",
+    dishPoissonJour: "Poisson du jour — les 100 Gr",
+    dishFoieGrille: "Foie grillé",
+    dishCotelettesAgneau: "Côtelettes d'agneau",
+    dishDemiPouletCarbonnade: "Demi poulet carbonnade",
+    dishEscalopeDinde: "Escalope de dinde",
+    dishLahmaMechwiya: "Lahma mechwiya",
+    dishMakaroniFruitsMer: "Macaroni aux fruits de mer",
+    dishMethaouma: "Methaouma",
+    dishMezza: "Mezza",
+    dishPlatFruitsMer: "Plat fruits de mer",
+    dishSpaghettiPoisson: "Spaghetti au poisson",
+    dishSpaghettiPoulet: "Spaghetti au poulet",
+
+    // =========================
+    // Plats - Pizzas
+    // =========================
+    dishPizzaFruitsMerPistou: "Pizza fruits de mer pistou",
+    dishPizzaOeuf: "Pizza à l'œuf",
+    dishPizzaThon: "Pizza thon",
+    dishPizzaVegetarienne: "Pizza végétarienne",
+
+    // =========================
+    // Plats - Desserts
+    // =========================
+    dishFruits: "Fruits",
+    dishSorbet: "Sorbet",
 
     // =========================
     // Avis / Reviews
@@ -276,7 +329,6 @@ export const translations = {
     complaintError: "Erreur lors de l'envoi de la réclamation.",
     resolved: "Résolue",
     unresolved: "Non résolue",
-    // statuts de traitement interne (admin) des réclamations
     statusNew: "Nouvelle",
     statusInProgress: "En cours",
 
@@ -494,6 +546,26 @@ export const translations = {
     yes: "Yes",
     no: "No",
 
+    // =========================
+    // Section subtitles (admin)
+    // =========================
+    businessEngagementSubtitle:
+      "Loyalty, promotions, segmentation and business management",
+    allReservationsSubtitle: "Overview of all client reservations",
+    manageTablesSubtitle: "Add, check availability and remove tables",
+    clientAccountsSubtitle: "List of clients and access management",
+    manageMenuSubtitle: "Add dishes and organize your menu by categories",
+    dishReviewsSubtitle: "Ratings and comments left by clients on dishes",
+    complaintsSubtitleAdmin: "Tracking and handling of client complaints",
+    adminSettingsSubtitle: "Administrator account information",
+    noClients: "No clients",
+    noPhone: "No phone",
+    statusActive: "Active",
+    statusInactive: "Deactivated",
+    activate: "Activate",
+    deactivate: "Deactivate",
+    noDescriptionAvailable: "No description.",
+
     french: "Français",
     english: "English",
     arabic: "العربية",
@@ -642,6 +714,30 @@ export const translations = {
     dishCrevettesSautees: "Sautéed Shrimp",
     dishSeicheGrillee: "Grilled Cuttlefish",
     dishCalamarsGrilles: "Grilled Calamari",
+
+    dishFiletPoivreChampignons: "Pepper & Mushroom Fillet",
+    dishGrilladeMixte: "Mixed Grill",
+    dishCrevettesRoyales: "Grilled King Shrimp",
+    dishPoissonJour: "Catch of the Day — 100 g",
+    dishFoieGrille: "Grilled Liver",
+    dishCotelettesAgneau: "Lamb Chops",
+    dishDemiPouletCarbonnade: "Half Chicken Carbonnade",
+    dishEscalopeDinde: "Turkey Escalope",
+    dishLahmaMechwiya: "Lahma Mechwiya",
+    dishMakaroniFruitsMer: "Seafood Macaroni",
+    dishMethaouma: "Methaouma",
+    dishMezza: "Mezza",
+    dishPlatFruitsMer: "Seafood Platter",
+    dishSpaghettiPoisson: "Fish Spaghetti",
+    dishSpaghettiPoulet: "Chicken Spaghetti",
+
+    dishPizzaFruitsMerPistou: "Seafood Pesto Pizza",
+    dishPizzaOeuf: "Egg Pizza",
+    dishPizzaThon: "Tuna Pizza",
+    dishPizzaVegetarienne: "Vegetarian Pizza",
+
+    dishFruits: "Fruits",
+    dishSorbet: "Sorbet",
 
     reviewsTitle: "Reviews",
     dishReviews: "Dish reviews",
@@ -868,6 +964,26 @@ export const translations = {
     yes: "نعم",
     no: "لا",
 
+    // =========================
+    // العناوين الفرعية للأقسام (الإدارة)
+    // =========================
+    businessEngagementSubtitle:
+      "الولاء والعروض الترويجية والتقسيم والتسيير التجاري",
+    allReservationsSubtitle: "نظرة شاملة على جميع حجوزات العملاء",
+    manageTablesSubtitle: "إضافة الطاولات ومتابعة توفرها وحذفها",
+    clientAccountsSubtitle: "قائمة العملاء وإدارة صلاحياتهم",
+    manageMenuSubtitle: "أضف الأطباق ونظّم قائمتك حسب التصنيفات",
+    dishReviewsSubtitle: "التقييمات والتعليقات التي تركها العملاء على الأطباق",
+    complaintsSubtitleAdmin: "متابعة ومعالجة شكاوى العملاء",
+    adminSettingsSubtitle: "معلومات حساب المسؤول",
+    noClients: "لا يوجد عملاء",
+    noPhone: "لا يوجد هاتف",
+    statusActive: "نشط",
+    statusInactive: "معطّل",
+    activate: "تفعيل",
+    deactivate: "تعطيل",
+    noDescriptionAvailable: "لا يوجد وصف.",
+
     french: "Français",
     english: "English",
     arabic: "العربية",
@@ -1016,6 +1132,30 @@ export const translations = {
     dishCrevettesSautees: "جمبري مقلي",
     dishSeicheGrillee: "سيبيا مشوية",
     dishCalamarsGrilles: "كالامار مشوي",
+
+    dishFiletPoivreChampignons: "فيليه بالفلفل والفطر",
+    dishGrilladeMixte: "مشاوي مشكلة",
+    dishCrevettesRoyales: "جمبري ملكي مشوي",
+    dishPoissonJour: "سمك اليوم — 100 غ",
+    dishFoieGrille: "كبدة مشوية",
+    dishCotelettesAgneau: "قطع لحم غنم",
+    dishDemiPouletCarbonnade: "نصف دجاجة كاربوناد",
+    dishEscalopeDinde: "إسكالوب ديك رومي",
+    dishLahmaMechwiya: "لحمة مشوية",
+    dishMakaroniFruitsMer: "مكرونة بفواكه البحر",
+    dishMethaouma: "مثوّمة",
+    dishMezza: "ميزة",
+    dishPlatFruitsMer: "طبق فواكه البحر",
+    dishSpaghettiPoisson: "سباغيتي بالسمك",
+    dishSpaghettiPoulet: "سباغيتي بالدجاج",
+
+    dishPizzaFruitsMerPistou: "بيتزا فواكه البحر بالبيستو",
+    dishPizzaOeuf: "بيتزا بالبيض",
+    dishPizzaThon: "بيتزا بالتن",
+    dishPizzaVegetarienne: "بيتزا نباتية",
+
+    dishFruits: "فواكه",
+    dishSorbet: "سوربي",
 
     reviewsTitle: "التقييمات",
     dishReviews: "تقييمات الطبق",
@@ -1225,18 +1365,41 @@ export const dishTranslations = {
   "Crevettes sautées": "dishCrevettesSautees",
   "Seiche grillée": "dishSeicheGrillee",
   "Calamars grillés": "dishCalamarsGrilles",
+
+  "Filet au poivre et aux champignons": "dishFiletPoivreChampignons",
+  "Grillade mixte": "dishGrilladeMixte",
+  "Crevettes royales grillées": "dishCrevettesRoyales",
+  "Poisson du jour": "dishPoissonJour",
+  "Poisson du jour — les 100 Gr": "dishPoissonJour",
+  "Poisson du jour - les 100 Gr": "dishPoissonJour",
+  "Foie grillé": "dishFoieGrille",
+  "Côtelettes d'agneau": "dishCotelettesAgneau",
+  "Cotelettes d'agneau": "dishCotelettesAgneau",
+  "Demi poulet carbonnade": "dishDemiPouletCarbonnade",
+  "Escalope de dinde": "dishEscalopeDinde",
+  "Escalope dinde": "dishEscalopeDinde",
+  "Lahma mechwiya": "dishLahmaMechwiya",
+  "Macaroni aux fruits de mer": "dishMakaroniFruitsMer",
+  "Makaroni fruits de mer": "dishMakaroniFruitsMer",
+  Methaouma: "dishMethaouma",
+  Mezza: "dishMezza",
+  "Plat fruits de mer": "dishPlatFruitsMer",
+  "Spaghetti au poisson": "dishSpaghettiPoisson",
+  "Spaghetti au poulet": "dishSpaghettiPoulet",
+
+  "Pizza fruits de mer pistou": "dishPizzaFruitsMerPistou",
+  "Pizza à l'œuf": "dishPizzaOeuf",
+  "Pizza a l'oeuf": "dishPizzaOeuf",
+  "Pizza thon": "dishPizzaThon",
+  "Pizza végétarienne": "dishPizzaVegetarienne",
+  "Pizza vegetarienne": "dishPizzaVegetarienne",
+
+  Fruits: "dishFruits",
+  Sorbet: "dishSorbet",
 };
 
 /* ============================================================
  * Traduction des catégories
- * IMPORTANT :
- * Les clés ci-dessous DOIVENT être identiques (mot pour mot, accents
- * compris) aux chaînes retournées par categorieVoilier() et à celles
- * du tableau CATEGORIES_MENU_VOILIER dans App.js.
- * Un décalage ici (ex: singulier/pluriel, accent manquant) fait que
- * translateCategoryName() ne trouve pas de correspondance et renvoie
- * la chaîne française brute même en EN/AR — c'est ce qui causait
- * le bug de traduction des catégories.
  * ============================================================ */
 
 export const categoryTranslations = {
@@ -1259,8 +1422,6 @@ export const categoryTranslations = {
 
 /* ============================================================
  * Traduction des statuts
- * IMPORTANT :
- * Les statuts originaux restent utilisés dans la logique.
  * ============================================================ */
 
 export const statusTranslations = {
@@ -1284,9 +1445,6 @@ export const statusTranslations = {
   Résolue: "resolved",
   Resolue: "resolved",
 
-  // Statuts internes des réclamations (admin) — manquaient avant,
-  // ce qui faisait que "Nouvelle" / "En cours" restaient en français
-  // même en EN/AR.
   Nouvelle: "statusNew",
   "En cours": "statusInProgress",
 };
