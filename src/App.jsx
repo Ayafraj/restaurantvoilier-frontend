@@ -486,8 +486,6 @@ export function BarChartStat({ data }) {
 }
 
 export function DonutChartStat({ data, size = 148, thickness = 24 }) {
-  const { t } = useTranslation();
-
   const total = data.reduce((sum, d) => sum + d.value, 0) || 1;
 
   return (
