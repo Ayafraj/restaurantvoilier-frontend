@@ -1990,7 +1990,6 @@ export function LanguageSwitcher() {
       <span className="language-icon">🌐</span>
       {[
         ["fr", "FR"],
-        ["en", "EN"],
         ["ar", "AR"],
       ].map(([code, label]) => (
         <button
