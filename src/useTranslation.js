@@ -1,54 +1,95 @@
-// src/useTranslation.js
-
 import { useEffect, useState } from "react";
 import { translations } from "./translations";
 
-export function getLanguage() {
-  const saved = localStorage.getItem("voilier_lang");
+const LANGUAGE_KEY = "voilier_lang";
+const LANGUAGE_EVENT = "voilier-language-changed";
 
-  if (["fr", "en", "ar"].includes(saved)) {
+const SUPPORTED_LANGUAGES = ["fr", "en", "ar"];
+
+// ======================================================
+// GET CURRENT LANGUAGE
+// ======================================================
+
+export function getLanguage() {
+  const saved = localStorage.getItem(LANGUAGE_KEY);
+
+  if (SUPPORTED_LANGUAGES.includes(saved)) {
     return saved;
   }
 
   return "fr";
 }
 
+// ======================================================
+// SET LANGUAGE
+// ======================================================
+
 export function setLanguage(lang) {
-  if (!["fr", "en", "ar"].includes(lang)) {
-    lang = "fr";
-  }
+  const newLang = SUPPORTED_LANGUAGES.includes(lang) ? lang : "fr";
 
-  localStorage.setItem("voilier_lang", lang);
+  // Sauvegarder la langue
+  localStorage.setItem(LANGUAGE_KEY, newLang);
 
+  // Langue HTML
+  document.documentElement.lang = newLang;
+
+  // Direction
+  document.documentElement.dir = newLang === "ar" ? "rtl" : "ltr";
+
+  // Classe RTL
+  document.body.classList.toggle("rtl", newLang === "ar");
+
+  // Prévenir tous les composants React
   window.dispatchEvent(
-    new CustomEvent("voilier-language-changed", {
-      detail: lang,
+    new CustomEvent(LANGUAGE_EVENT, {
+      detail: newLang,
     })
   );
 }
+
+// ======================================================
+// TRANSLATION HOOK
+// ======================================================
 
 export function useTranslation() {
   const [lang, setLang] = useState(getLanguage);
 
   useEffect(() => {
-    const updateLanguage = (event) => {
-      const newLang = event.detail || getLanguage();
-      setLang(newLang);
-    };
-
-    window.addEventListener("voilier-language-changed", updateLanguage);
-
+    // Appliquer la langue actuelle
     document.documentElement.lang = lang;
+
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+
     document.body.classList.toggle("rtl", lang === "ar");
 
+    // Écouter les changements de langue
+    const updateLanguage = (event) => {
+      const newLang = event.detail;
+
+      if (SUPPORTED_LANGUAGES.includes(newLang)) {
+        setLang(newLang);
+      }
+    };
+
+    window.addEventListener(LANGUAGE_EVENT, updateLanguage);
+
     return () => {
-      window.removeEventListener("voilier-language-changed", updateLanguage);
+      window.removeEventListener(LANGUAGE_EVENT, updateLanguage);
     };
   }, [lang]);
 
+  // ====================================================
+  // TRANSLATE
+  // ====================================================
+
   const t = (key) => {
-    return translations[lang]?.[key] ?? translations.fr?.[key] ?? key;
+    // Traduction dans la langue actuelle
+    const currentTranslation = translations[lang]?.[key];
+
+    if (currentTranslation !== undefined) {
+      return currentTranslation;
+    }
+    return key;
   };
 
   return {
